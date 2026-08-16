@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>PKG Salary Calculation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --paper:#EBE8DD;
+    --paper-line:rgba(20,32,42,0.045);
+    --card:#FFFFFF;
+    --ink:#181F29;
+    --ink-soft:#606A78;
+    --navy:#131E28;
+    --navy-deep:#0A1319;
+    --slate:#2F4858;
+    --brass:#A9812E;
+    --brass-deep:#8A6A22;
+    --brass-soft:#EFE3C4;
+    --oxblood:#7A2E2E;
+    --oxblood-soft:#F1DEDA;
+    --forest:#3B6B4E;
+    --forest-soft:#DCE7DD;
+    --line:#D7D0BC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, transparent, transparent 27px, var(--paper-line) 27px, var(--paper-line) 28px),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:44px;
+  }
+  .topbar{
+    background:linear-gradient(160deg,var(--navy-deep),var(--navy));
+    color:#EDEAE0;
+    padding:16px 16px 16px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:3px solid var(--brass);
+  }
+  .topbar::after{
+    content:"";
+    position:absolute;
+    right:-30px; top:-40px;
+    width:150px; height:150px;
+    border:1px solid rgba(237,234,224,0.10);
+    border-radius:50%;
+  }
+  .toprow{ display:flex; align-items:center; justify-content:space-between; gap:8px; position:relative; z-index:1; }
+  .toprow-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .back-btn{
+    background:rgba(237,234,224,0.12); border:1px solid rgba(237,234,224,0.2);
+    color:#EDEAE0; width:32px; height:32px; border-radius:8px; font-size:16px; cursor:pointer; flex-shrink:0;
+  }
+  .brand-seal{
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    border:1.5px solid var(--brass); display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; font-size:14px; color:var(--brass);
+    background:rgba(169,129,46,0.08);
+  }
+  .title-block{ min-width:0; }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.15em;
+    text-transform:uppercase; color:#B9A46C; margin:0 0 3px;
+  }
+  h1{
+    font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin:0;
+    letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .sub{ font-size:11.5px; color:#BFC7CE; margin-top:3px; font-family:'Inter',sans-serif; }
+  .period-btn{
+    background:rgba(169,129,46,0.16); border:1px solid var(--brass);
+    color:#E8CD8A; width:36px; height:36px; border-radius:9px; font-size:16px; cursor:pointer; flex-shrink:0;
+  }
+  .period-panel{
+    display:none; margin-top:12px; background:rgba(237,234,224,0.06);
+    border:1px solid rgba(237,234,224,0.18); border-radius:10px; padding:12px; position:relative; z-index:1;
+  }
+  .period-panel.open{ display:block; }
+  .period-panel .row{ display:flex; gap:8px; }
+  .period-panel .field{ flex:1; }
+  .period-panel label{ font-size:9.5px; color:#B9A46C; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:4px; }
+  .period-panel input{
+    width:100%; border:1px solid rgba(237,234,224,0.25); background:rgba(255,255,255,0.06);
+    color:#EDEAE0; border-radius:7px; padding:7px 8px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
+  }
+  .period-panel .apply-btn{
+    margin-top:9px; width:100%; background:var(--brass); border:none; color:#1B1400;
+    font-weight:700; font-family:'Fraunces',serif; padding:8px; border-radius:7px; cursor:pointer; font-size:13px;
+  }
+  .period-readout{ font-size:11px; color:#E8CD8A; margin-top:6px; font-family:'JetBrains Mono',monospace; }
+
+  .wrap{ padding:14px; max-width:720px; margin:0 auto; }
+
+  /* ---------- LIST ---------- */
+  .summary{ display:flex; gap:10px; margin:0 0 14px; }
+  .sum-card{
+    flex:1; background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:11px 13px; box-shadow:0 2px 6px rgba(20,32,42,0.05); border-left:3px solid var(--brass);
+  }
+  .sum-card .lbl{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
+  .sum-card .val{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; margin-top:2px; color:var(--navy); }
+
+  .btn-add{
+    width:100%; background:var(--navy); color:#EDEAE0; border:none; border-radius:10px;
+    padding:13px; font-size:14.5px; font-weight:600; font-family:'Fraunces',serif; margin-bottom:14px;
+    cursor:pointer; letter-spacing:.01em;
+  }
+  .btn-add:active{ background:var(--navy-deep); }
+
+  .register-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; padding:0 2px; }
+  .register-head .t{ font-family:'Fraunces',serif; font-size:14px; font-weight:600; color:var(--navy); }
+  .register-head .n{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-soft); }
+
+  .roster{ display:flex; flex-direction:column; gap:8px; margin-bottom:6px; }
+  .roster-row{
+    background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 13px;
+    display:flex; align-items:center; gap:12px; cursor:pointer; position:relative;
+  }
+  .roster-row:active{ background:#FAF8F2; }
+  .roster-sl{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--brass); font-weight:700;
+    width:22px; text-align:center; flex-shrink:0; border-right:1px dashed var(--line); padding-right:10px;
+  }
+  .roster-mid{ flex:1; min-width:0; }
+  .roster-name{ font-family:'Fraunces',serif; font-weight:600; font-size:14.5px; color:var(--ink); }
+  .roster-id{ font-size:10.5px; color:var(--ink-soft); font-family:'JetBrains Mono',monospace; margin-top:1px; }
+  .roster-figs{ display:flex; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:5px; }
+  .roster-figs b{ color:var(--ink); font-size:11px; }
+  .roster-total{ text-align:right; flex-shrink:0; }
+  .roster-total .amt{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--navy); border-bottom:1px solid var(--brass); padding-bottom:2px; }
+  .roster-total .lbl{ font-size:9px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+  .chevron{ color:var(--line); font-size:14px; }
+
+  .empty{ text-align:center; padding:40px 20px; color:var(--ink-soft); }
+  .empty .big{ font-size:32px; margin-bottom:6px; }
+  .note{ font-size:11px; color:var(--ink-soft); text-align:center; margin-top:16px; line-height:1.55; }
+  .note b{ color:var(--ink); }
+
+  /* ---------- DETAIL ---------- */
+  .section-lbl{
+    font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--brass); margin:16px 2px 8px; font-weight:600;
+  }
+  .section-lbl:first-child{ margin-top:0; }
+  .name-edit-row{ display:flex; gap:8px; margin-bottom:10px; }
+  .name-edit-row .field{ flex:1; }
+  .field label{
+    font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;
+    font-weight:600; display:block; margin-bottom:4px;
+  }
+  .field input, .field select{
+    border:1px solid var(--line); background:#FBFAF6; border-radius:8px; padding:9px 9px;
+    font-size:13.5px; font-family:'JetBrains Mono',monospace; color:var(--ink); width:100%;
+  }
+  .field.text input{ font-family:'Inter',sans-serif; }
+  .field input:focus, .field select:focus{ outline:2px solid var(--slate); outline-offset:1px; background:#fff; }
+
+  .config-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; }
+  .config-grid .field.full{ grid-column:1/-1; }
+  .holiday-field input, .duty-field input{ border-color:var(--brass); background:var(--brass-soft); font-weight:600; color:var(--navy); }
+  .icon-label{ display:flex; align-items:center; gap:5px; }
+  .icon-label .ic{ font-size:12px; }
+
+  .period-chip{
+    display:inline-block; background:var(--brass-soft); color:var(--brass-deep); border:1px solid var(--brass);
+    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; margin-bottom:12px;
+  }
+
+  .day-table-wrap{ border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:10px 0 14px; background:var(--card); }
+  .day-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table.daygrid{ border-collapse:collapse; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  table.daygrid thead th{
+    background:var(--navy); color:#EDEAE0; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em;
+    padding:8px 6px; white-space:nowrap; position:sticky; top:0; font-family:'Inter',sans-serif; font-weight:600;
+  }
+  table.daygrid td{ padding:6px 5px; border-top:1px solid var(--line); background:var(--card); white-space:nowrap; }
+  table.daygrid td.date-cell{
+    position:sticky; left:0; background:#FBFAF6; font-weight:700; color:var(--navy);
+    text-align:center; border-right:1px solid var(--line); font-family:'Fraunces',serif; font-size:11.5px;
+  }
+  table.daygrid tr.off-row td{ background:#F0EEE6; }
+  table.daygrid tr.absent-row td{ background:var(--oxblood-soft); }
+  table.daygrid select.status-sel{
+    border:1px solid var(--line); border-radius:6px; padding:5px 4px; font-family:'JetBrains Mono',monospace;
+    font-size:11px; background:#fff; color:var(--ink); width:74px;
+  }
+  table.daygrid input.min-input{
+    width:42px; border:1px solid var(--line); border-radius:6px; padding:5px 4px;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; background:#fff; color:var(--ink); text-align:center;
+  }
+  td.net-cell{ font-weight:700; text-align:center; color:var(--forest); width:42px; }
+  td.extra-cell{ font-weight:700; text-align:center; color:var(--brass-deep); width:42px; background:var(--brass-soft) !important; }
+
+  .time-cell{ display:flex; align-items:center; gap:3px; }
+  .time-txt{
+    width:44px; border:1px solid var(--line); border-radius:6px; padding:5px 4px;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; text-align:center; background:#fff; color:var(--ink);
+  }
+  select.ampm-sel{
+    border:1px solid var(--slate); border-radius:6px; padding:5px 3px; font-family:'JetBrains Mono',monospace;
+    font-size:10.5px; font-weight:700; background:#EAF0F3; color:var(--slate); width:40px;
+  }
+
+  .calc-strip{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+    display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; margin-bottom:12px;
+  }
+  .calc-item{ display:flex; flex-direction:column; }
+  .calc-item .k{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+  .calc-item .v{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14px; margin-top:2px;}
+  .v.deduct{ color:var(--oxblood); }
+  .v.bonus{ color:var(--forest); }
+  .v.amber{ color:var(--brass); }
+
+  .grand{
+    background:linear-gradient(160deg,var(--navy-deep),var(--navy)); color:#EDEAE0; border-radius:12px; padding:15px 16px;
+    display:flex; flex-direction:column; gap:5px; margin-bottom:10px; border:1px solid var(--navy-deep);
+  }
+  .grand-line{ display:flex; justify-content:space-between; font-size:12.5px; color:#C7CDD3; padding-bottom:5px; border-bottom:1px solid rgba(237,234,224,0.14); }
+  .grand-line b{ color:#EDEAE0; font-family:'JetBrains Mono',monospace; font-weight:500; }
+  .grand-final{
+    display:flex; justify-content:space-between; align-items:center; margin-top:7px; padding-top:10px;
+    border-top:3px double rgba(169,129,46,0.65);
+  }
+  .grand-final .k{ font-family:'Fraunces',serif; font-size:14px; font-weight:600; letter-spacing:.01em; }
+  .grand-final .v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:21px; color:#E8CD8A; }
+
+  .btn-print{
+    width:100%; background:#fff; border:1.5px solid var(--brass); color:var(--brass-deep);
+    font-family:'Fraunces',serif; font-weight:600; font-size:14px; padding:12px; border-radius:10px;
+    cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-print:active{ background:var(--brass-soft); }
+  .pdf-status{ text-align:center; font-size:11px; color:var(--ink-soft); margin-bottom:18px; min-height:14px; }
+
+  /* ---------- MENU / MODALS ---------- */
+  .menu-item{
+    width:100%; text-align:left; background:rgba(237,234,224,0.06); border:1px solid rgba(237,234,224,0.18);
+    color:#EDEAE0; padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:8px; cursor:pointer;
+    font-family:'Inter',sans-serif; display:flex; align-items:center; gap:8px;
+  }
+  .menu-item:last-child{ margin-bottom:0; }
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(10,19,25,0.72); z-index:1000;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-card{
+    background:var(--card); border-radius:14px; padding:20px; max-width:420px; width:100%;
+    max-height:85vh; overflow-y:auto; box-shadow:0 10px 40px rgba(0,0,0,0.3);
+  }
+  .modal-card h2{ font-family:'Fraunces',serif; font-size:17px; margin:0 0 4px; color:var(--navy); }
+  .modal-card p.sub{ font-size:12px; color:var(--ink-soft); margin:0 0 16px; }
+  .modal-field input[type=password]{
+    width:100%; border:1px solid var(--line); border-radius:8px; padding:10px;
+    font-family:'JetBrains Mono',monospace; font-size:14px; margin-bottom:8px; background:#FBFAF6; color:var(--ink);
+  }
+  .modal-error{ color:var(--oxblood); font-size:12px; margin-bottom:8px; min-height:14px; }
+  .modal-btn-row{ display:flex; gap:8px; margin-top:10px; }
+  .modal-btn{ flex:1; padding:11px; border-radius:9px; border:none; font-family:'Fraunces',serif; font-weight:600; font-size:13.5px; cursor:pointer; }
+  .modal-btn.primary{ background:var(--navy); color:#EDEAE0; }
+  .modal-btn.ghost{ background:#F0EEE6; color:var(--ink); border:1px solid var(--line); }
+  .viewer-link{ display:block; text-align:center; margin-top:14px; font-size:12.5px; color:var(--slate); cursor:pointer; text-decoration:underline; }
+  .emp-check-row{ display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .emp-check-row input{ width:16px; height:16px; flex-shrink:0; }
+  .emp-check-row .nm{ flex:1; font-family:'Fraunces',serif; font-weight:600; }
+  .emp-check-row .amt{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft); }
+  .select-all-row{ display:flex; align-items:center; gap:10px; padding:8px 4px 10px; border-bottom:2px solid var(--brass); font-weight:600; font-size:13px; margin-bottom:2px; }
+  .select-all-row input{ width:16px; height:16px; }
+  .lock-banner{
+    background:var(--oxblood-soft); color:var(--oxblood); border:1px solid var(--oxblood);
+    border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:600; text-align:center;
+    margin-bottom:14px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="toprow">
+    <div class="toprow-left">
+      <button class="back-btn" id="backBtn" style="display:none;">←</button>
+      <div class="brand-seal">SC</div>
+      <div class="title-block">
+        <p class="eyebrow" id="eyebrow">Payroll Register</p>
+        <h1 id="pageTitle">PKG Salary Calculation</h1>
+        <p class="sub" id="pageSub">Monthly attendance &amp; salary ledger</p>
+      </div>
+    </div>
+    <button class="period-btn" id="periodBtn" title="Select period">📅</button>
+    <button class="period-btn" id="menuBtn" title="Menu">⋮</button>
+  </div>
+  <p class="period-readout" id="periodReadout"></p>
+  <div class="period-panel" id="periodPanel">
+    <div class="row">
+      <div class="field"><label>Period Start</label><input type="date" id="periodStartInput" /></div>
+      <div class="field"><label>Period End</label><input type="date" id="periodEndInput" /></div>
+    </div>
+    <button class="apply-btn" id="periodApplyBtn">Apply Period</button>
+  </div>
+  <div class="period-panel" id="menuPanel">
+    <button class="menu-item" id="menuPrintBtn">🖨️ Print / Export Salary (CSV &amp; PDF)</button>
+    <button class="menu-item" id="menuViewerBtn">🔒 Switch to Viewer</button>
+  </div>
+</div>
+
+<div class="wrap" id="wrap"></div>
+
+<div class="modal-overlay" id="lockOverlay">
+  <div class="modal-card">
+    <h2>🔒 Enter Password</h2>
+    <p class="sub">A password is required to add or edit employees.</p>
+    <div class="modal-field"><input type="password" id="lockPwInput" placeholder="Password" /></div>
+    <div class="modal-error" id="lockError"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn ghost" id="lockCancelBtn">Cancel</button>
+      <button class="modal-btn primary" id="lockUnlockBtn">Unlock</button>
+    </div>
+    <div class="viewer-link" id="lockViewerLink">Continue as Viewer (view only)</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="printOverlay">
+  <div class="modal-card" id="printModalCard"></div>
+</div>
+
+<script>
+const EMP_KEY = 'employees_v5';
+const PERIOD_KEY = 'period_v1';
+let employees = [];
+let period = { start:'', end:'' };
+let view = { mode: 'list' };
+let unlocked = false;
+const APP_PASSWORD = 'Alamxir00';
+
+function uid(){ return 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+function num(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function money(n){ return '৳' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
+function moneyPdf(n){ return 'Tk ' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
+function escapeHtml(str){
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toISO(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function addDays(iso, n){ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return toISO(d); }
+function enumerateDates(start, end){
+  let dates=[]; let cur=start; let guard=0;
+  while(cur<=end && guard<400){ dates.push(cur); cur=addDays(cur,1); guard++; }
+  return dates;
+}
+function formatDateLabel(iso){
+  const d=new Date(iso+'T00:00:00');
+  return d.getDate() + ' ' + d.toLocaleString('en-US',{month:'short'});
+}
+function defaultPeriod(){
+  const today = new Date();
+  const endDate = new Date(today.getFullYear(), today.getMonth(), 25);
+  const startDate = new Date(today.getFullYear(), today.getMonth()-1, 26);
+  return { start: toISO(startDate), end: toISO(endDate) };
+}
+
+function blankEmployee(){
+  return { id: uid(), name:'', designation:'', empId:'', basicSalary:'', perHourRate:'', dutyHour:'',
+    dutyStart:'', dutyStartPeriod:'AM', dutyEnd:'', dutyEndPeriod:'PM', govtHolidayAmount:'', days:{} };
+}
+function getDay(emp, d){
+  return emp.days[d] || { checkIn:'', checkInPeriod:'AM', checkOut:'', checkOutPeriod:'PM', status:'present' };
+}
+
+/* parse "9:30" + AM/PM into minutes-from-midnight */
+function parseTime12(str, per){
+  if(!str) return null;
+  const parts = String(str).split(':');
+  let h = parseInt(parts[0],10);
+  let m = parts.length>1 ? parseInt(parts[1],10) : 0;
+  if(isNaN(h)) return null;
+  if(isNaN(m)) m = 0;
+  if(per === 'AM'){ if(h===12) h=0; } else { if(h!==12) h+=12; }
+  return h*60+m;
+}
+
+/* Extra time auto-computed: worked duration minus duty hour */
+function computeAutoExtraMinutes(day, dutyHour){
+  const inMin = parseTime12(day.checkIn, day.checkInPeriod);
+  const outMin = parseTime12(day.checkOut, day.checkOutPeriod);
+  if(inMin===null || outMin===null) return 0;
+  let worked = outMin - inMin;
+  if(worked < 0) worked += 24*60;
+  const dutyMin = num(dutyHour) * 60;
+  return Math.max(0, worked - dutyMin);
+}
+/* Late time auto-computed: check-in time minus duty period start time */
+function computeAutoLateMinutes(emp, day){
+  const dutyStartMin = parseTime12(emp.dutyStart, emp.dutyStartPeriod);
+  const inMin = parseTime12(day.checkIn, day.checkInPeriod);
+  if(dutyStartMin===null || inMin===null) return 0;
+  let diff = inMin - dutyStartMin;
+  if(diff < -720) diff += 24*60;   /* overnight duty wrap-around */
+  if(diff > 720) diff -= 24*60;
+  return Math.max(0, diff);
+}
+/* Per-hour rate auto-computed from Basic Salary and Duty Hour, using the actual number of days in the selected period */
+function calcAutoPerHourRate(emp){
+  const dh = num(emp.dutyHour);
+  const basic = num(emp.basicSalary);
+  const days = enumerateDates(period.start, period.end).length || 30;
+  if(dh<=0 || basic<=0) return '';
+  return (basic / (days * dh)).toFixed(2);
+}
+function dayNetExtra(day, emp){
+  const autoExtra = computeAutoExtraMinutes(day, emp.dutyHour);
+  const autoLate = computeAutoLateMinutes(emp, day);
+  return Math.max(0, autoExtra - autoLate);
+}
+
+function monthlyCalc(emp){
+  const dates = enumerateDates(period.start, period.end);
+  let totalNet=0, totalLate=0;
+  dates.forEach(dt => {
+    const day = getDay(emp, dt);
+    totalNet += dayNetExtra(day, emp);
+    totalLate += computeAutoLateMinutes(emp, day);
+  });
+  const extraHour = totalNet/60;
+  const amount = extraHour * num(emp.perHourRate);
+  const basic = num(emp.basicSalary);
+  const holiday = num(emp.govtHolidayAmount);
+  const grand = basic + amount + holiday;
+  return { totalNet, totalLate, extraHour, amount, basic, holiday, grand, dates };
+}
+
+async function loadPeriod(){
+  try{
+    const raw = localStorage.getItem(PERIOD_KEY);
+    period = raw ? JSON.parse(raw) : defaultPeriod();
+  }catch(e){ period = defaultPeriod(); }
+}
+async function savePeriod(){
+  try{ localStorage.setItem(PERIOD_KEY, JSON.stringify(period)); }catch(e){ console.error(e); }
+}
+async function loadEmployees(){
+  try{
+    const raw = localStorage.getItem(EMP_KEY);
+    employees = raw ? JSON.parse(raw) : [];
+  }catch(e){ employees = []; }
+}
+async function saveEmployees(){
+  try{ localStorage.setItem(EMP_KEY, JSON.stringify(employees)); }catch(e){ console.error('save failed', e); }
+}
+
+function addEmployee(){
+  if(!unlocked){ openLockOverlay(); return; }
+  employees.push(blankEmployee());
+  saveEmployees();
+  view = { mode:'detail', id: employees[employees.length-1].id };
+  render();
+}
+function deleteEmployee(id){
+  if(!unlocked){ openLockOverlay(); return; }
+  employees = employees.filter(e=>e.id!==id); saveEmployees(); render();
+}
+function openDetail(id){ view={mode:'detail', id}; render(); }
+function goList(){ view={mode:'list'}; render(); }
+
+function updateEmpField(id, field, value){
+  if(!unlocked) return;
+  const emp = employees.find(e=>e.id===id);
+  if(!emp) return;
+  emp[field] = value;
+  if(field==='basicSalary' || field==='dutyHour'){
+    const auto = calcAutoPerHourRate(emp);
+    if(auto !== ''){
+      emp.perHourRate = auto;
+      const phrEl = document.querySelector('[data-empfield="perHourRate"]');
+      if(phrEl) phrEl.value = auto;
+    }
+  }
+  saveEmployees();
+  if(view.mode==='detail'){
+    if(field==='dutyHour' || field==='dutyStart' || field==='dutyStartPeriod' || field==='dutyEnd' || field==='dutyEndPeriod'){
+      refreshAllDayRows(emp);
+    }
+    updateFooterUI(emp);
+  }
+}
+function updateDayField(id, d, field, value){
+  if(!unlocked) return;
+  const emp = employees.find(e=>e.id===id);
+  if(!emp) return;
+  if(!emp.days[d]) emp.days[d] = getDay(emp, d);
+  emp.days[d][field] = value;
+  saveEmployees();
+  updateDayRowUI(emp, d);
+  updateFooterUI(emp);
+}
+function updateDayRowUI(emp, d){
+  const day = getDay(emp, d);
+  const autoExtra = computeAutoExtraMinutes(day, emp.dutyHour);
+  const autoLate = computeAutoLateMinutes(emp, day);
+  const net = Math.max(0, autoExtra - autoLate);
+  const lateCell = document.getElementById('late_'+emp.id+'_'+d);
+  if(lateCell) lateCell.textContent = autoLate;
+  const extraCell = document.getElementById('extra_'+emp.id+'_'+d);
+  if(extraCell) extraCell.textContent = autoExtra;
+  const netCell = document.getElementById('net_'+emp.id+'_'+d);
+  if(netCell) netCell.textContent = net;
+  const row = document.getElementById('row_'+emp.id+'_'+d);
+  if(row) row.className = day.status==='off' ? 'off-row' : (day.status==='absent' ? 'absent-row' : '');
+}
+function refreshAllDayRows(emp){
+  const dates = enumerateDates(period.start, period.end);
+  dates.forEach(d => updateDayRowUI(emp, d));
+}
+function updateFooterUI(emp){
+  const c = monthlyCalc(emp);
+  const set = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent = txt; };
+  set('m_totalLate', c.totalLate+' min');
+  set('m_totalNet', c.totalNet+' min');
+  set('m_hour', c.extraHour.toFixed(2)+' h');
+  set('m_amount', money(c.amount));
+  set('m_amount2', money(c.amount));
+  set('m_basic', money(c.basic));
+  set('m_holiday', money(c.holiday));
+  set('m_grand', money(c.grand));
+}
+
+/* ---------------- PERIOD PANEL ---------------- */
+function periodLabel(){
+  return formatDateLabel(period.start) + ' – ' + formatDateLabel(period.end) + ', ' + new Date(period.end+'T00:00:00').getFullYear();
+}
+function refreshPeriodReadout(){
+  document.getElementById('periodReadout').textContent = 'Current period: ' + periodLabel();
+  document.getElementById('periodStartInput').value = period.start;
+  document.getElementById('periodEndInput').value = period.end;
+}
+document.getElementById('periodBtn').addEventListener('click', () => {
+  document.getElementById('periodPanel').classList.toggle('open');
+});
+document.getElementById('periodApplyBtn').addEventListener('click', async () => {
+  const s = document.getElementById('periodStartInput').value;
+  const e = document.getElementById('periodEndInput').value;
+  if(s && e && s <= e){
+    period = { start:s, end:e };
+    employees.forEach(emp => {
+      const auto = calcAutoPerHourRate(emp);
+      if(auto !== '') emp.perHourRate = auto;
+    });
+    await savePeriod();
+    await saveEmployees();
+    document.getElementById('periodPanel').classList.remove('open');
+    refreshPeriodReadout();
+    render();
+  }
+});
+
+/* ---------------- LIST ---------------- */
+function renderList(){
+  const wrap = document.getElementById('wrap');
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('pageTitle').textContent = 'PKG Salary Calculation';
+  document.getElementById('pageSub').textContent = 'Monthly attendance & salary ledger';
+  document.getElementById('eyebrow').textContent = 'Payroll Register';
+
+  const totalGrand = employees.reduce((s,e)=>s+monthlyCalc(e).grand, 0);
+
+  let body = '';
+  if(employees.length===0){
+    body = `<div class="empty"><div class="big">🧾</div>Register is empty.<br/>Tap "Add Employee" to open the first ledger entry.</div>`;
+  } else {
+    let rows = '';
+    employees.forEach((emp, idx) => {
+      const c = monthlyCalc(emp);
+      rows += `
+      <div class="roster-row" data-open="${emp.id}">
+        <div class="roster-sl">${String(idx+1).padStart(2,'0')}</div>
+        <div class="roster-mid">
+          <div class="roster-name">${emp.name ? escapeHtml(emp.name) : 'Unnamed employee'}${emp.designation ? ' <span style="font-weight:400;color:var(--ink-soft);font-size:11.5px;">— '+escapeHtml(emp.designation)+'</span>' : ''}</div>
+          <div class="roster-id">${emp.empId ? 'ID '+escapeHtml(emp.empId) : 'ID —'}</div>
+          <div class="roster-figs">
+            <span>Basic <b>${money(c.basic)}</b></span>
+            <span>Extra <b>${money(c.amount)}</b></span>
+            <span>Holiday <b>${money(c.holiday)}</b></span>
+          </div>
+        </div>
+        <div class="roster-total">
+          <div class="amt">${money(c.grand)}</div>
+          <div class="lbl">Grand Total</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>`;
+    });
+    body = `
+      <div class="register-head"><span class="t">Employee Roster</span><span class="n">${employees.length} record${employees.length>1?'s':''}</span></div>
+      <div class="roster">${rows}</div>
+      <div class="note">All records are saved automatically on this device. Tap an employee to open and edit their ledger.</div>
+    `;
+  }
+
+  wrap.innerHTML = `
+    <div class="summary">
+      <div class="sum-card"><div class="lbl">Employees</div><div class="val">${employees.length}</div></div>
+      <div class="sum-card"><div class="lbl">Grand Total (All)</div><div class="val">${money(totalGrand)}</div></div>
+    </div>
+    <button class="btn-add" id="btnAdd">+ Add Employee</button>
+    ${body}
+  `;
+  document.getElementById('btnAdd').addEventListener('click', addEmployee);
+  wrap.querySelectorAll('[data-open]').forEach(row => {
+    row.addEventListener('click', () => openDetail(row.getAttribute('data-open')));
+  });
+}
+
+/* ---------------- DETAIL ---------------- */
+function timeCell(emp, d, which, day){
+  const isIn = which==='in';
+  const val = isIn ? day.checkIn : day.checkOut;
+  const per = isIn ? day.checkInPeriod : day.checkOutPeriod;
+  const field = isIn ? 'checkIn' : 'checkOut';
+  const perField = isIn ? 'checkInPeriod' : 'checkOutPeriod';
+  return `
+  <td>
+    <div class="time-cell">
+      <input class="time-txt" type="text" inputmode="numeric" maxlength="5" placeholder="${isIn?'09:00':'06:00'}"
+        value="${escapeHtml(val)}" data-day="${d}" data-field="${field}" />
+      <select class="ampm-sel" data-day="${d}" data-field="${perField}">
+        <option value="AM" ${per==='AM'?'selected':''}>AM</option>
+        <option value="PM" ${per==='PM'?'selected':''}>PM</option>
+      </select>
+    </div>
+  </td>`;
+}
+function dutyTimeField(emp, which){
+  const isStart = which==='start';
+  const val = isStart ? emp.dutyStart : emp.dutyEnd;
+  const per = isStart ? emp.dutyStartPeriod : emp.dutyEndPeriod;
+  const field = isStart ? 'dutyStart' : 'dutyEnd';
+  const perField = isStart ? 'dutyStartPeriod' : 'dutyEndPeriod';
+  return `
+    <div class="time-cell">
+      <input class="time-txt" type="text" inputmode="numeric" maxlength="5" placeholder="${isStart?'10:00':'08:00'}"
+        value="${escapeHtml(val)}" data-empfield="${field}" />
+      <select class="ampm-sel" data-empfield="${perField}">
+        <option value="AM" ${per==='AM'?'selected':''}>AM</option>
+        <option value="PM" ${per==='PM'?'selected':''}>PM</option>
+      </select>
+    </div>`;
+}
+function dayRow(emp, d){
+  const day = getDay(emp, d);
+  const autoExtra = computeAutoExtraMinutes(day, emp.dutyHour);
+  const autoLate = computeAutoLateMinutes(emp, day);
+  const net = Math.max(0, autoExtra - autoLate);
+  const rowClass = day.status==='off' ? 'off-row' : (day.status==='absent' ? 'absent-row' : '');
+  return `
+  <tr id="row_${emp.id}_${d}" class="${rowClass}">
+    <td class="date-cell">${formatDateLabel(d)}</td>
+    ${timeCell(emp, d, 'in', day)}
+    ${timeCell(emp, d, 'out', day)}
+    <td>
+      <select class="status-sel" data-day="${d}" data-field="status">
+        <option value="present" ${day.status==='present'?'selected':''}>Present</option>
+        <option value="off" ${day.status==='off'?'selected':''}>Day Off</option>
+        <option value="absent" ${day.status==='absent'?'selected':''}>Absent</option>
+      </select>
+    </td>
+    <td class="extra-cell" id="late_${emp.id}_${d}" style="background:var(--oxblood-soft) !important;color:var(--oxblood);">${autoLate}</td>
+    <td class="extra-cell" id="extra_${emp.id}_${d}">${autoExtra}</td>
+    <td class="net-cell" id="net_${emp.id}_${d}">${net}</td>
+  </tr>`;
+}
+
+function renderDetail(emp){
+  document.getElementById('backBtn').style.display = 'inline-block';
+  document.getElementById('pageTitle').textContent = emp.name || 'Unnamed employee';
+  document.getElementById('pageSub').textContent = (emp.empId ? 'ID '+emp.empId+' — ' : '') + 'Ledger entry';
+  document.getElementById('eyebrow').textContent = 'Employee Ledger';
+
+  const wrap = document.getElementById('wrap');
+  const c = monthlyCalc(emp);
+  let daysRows = c.dates.map(d => dayRow(emp, d)).join('');
+
+  wrap.innerHTML = `
+    ${!unlocked ? `<div class="lock-banner" id="unlockBannerBtn">🔒 Viewer Mode — Tap to Unlock Editing</div>` : ''}
+    <div class="period-chip">Period: ${periodLabel()}</div>
+
+    <div class="section-lbl">Employee Details</div>
+    <div class="name-edit-row">
+      <div class="field text"><label>Employee Name</label><input type="text" value="${escapeHtml(emp.name)}" data-empfield="name" placeholder="Full name" /></div>
+      <div class="field text"><label>Position / Designation</label><input type="text" value="${escapeHtml(emp.designation)}" data-empfield="designation" placeholder="e.g. Supervisor" /></div>
+    </div>
+    <div class="name-edit-row">
+      <div class="field text"><label>Employee ID</label><input type="text" value="${escapeHtml(emp.empId)}" data-empfield="empId" placeholder="EMP-101" /></div>
+    </div>
+
+    <div class="section-lbl">Duty Period</div>
+    <div class="config-grid">
+      <div class="field duty-field">
+        <label class="icon-label"><span class="ic">🕒</span> Duty Start Time</label>
+        ${dutyTimeField(emp, 'start')}
+      </div>
+      <div class="field duty-field">
+        <label class="icon-label"><span class="ic">🕗</span> Duty End Time</label>
+        ${dutyTimeField(emp, 'end')}
+      </div>
+      <div class="field duty-field full">
+        <label class="icon-label"><span class="ic">⏱️</span> Duty Hour (hr)</label>
+        <input type="number" inputmode="decimal" step="0.5" value="${emp.dutyHour}" data-empfield="dutyHour" placeholder="e.g. 7 or 9" />
+      </div>
+    </div>
+    <div class="note" style="margin-top:-4px;">Late is auto-calculated as (Check In − Duty Start Time). Extra Time is auto-calculated as (Check Out − Check In) − Duty Hour.</div>
+
+    <div class="section-lbl">Salary &amp; Rates</div>
+    <div class="config-grid">
+      <div class="field"><label>Basic Salary</label><input type="number" inputmode="decimal" value="${emp.basicSalary}" data-empfield="basicSalary" placeholder="0" /></div>
+      <div class="field"><label>Per Hour Rate</label><input type="number" inputmode="decimal" value="${emp.perHourRate}" data-empfield="perHourRate" placeholder="Auto" /></div>
+      <div class="field holiday-field full">
+        <label class="icon-label"><span class="ic">🏛️</span> Govt Holiday Amount</label>
+        <input type="number" inputmode="decimal" value="${emp.govtHolidayAmount}" data-empfield="govtHolidayAmount" placeholder="0" />
+      </div>
+    </div>
+    <div class="note" style="margin-top:-4px;">Per Hour Rate is auto-calculated from Basic Salary ÷ (number of days in the selected period × Duty Hour). Edit it manually if you need a different rate.</div>
+
+    <div class="section-lbl">Daily Attendance</div>
+    <div class="day-table-wrap">
+      <div class="day-scroll">
+        <table class="daygrid">
+          <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Status</th><th>Late</th><th>Extra Time</th><th>Sub Total</th></tr></thead>
+          <tbody id="dayBody">${daysRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="note" style="margin-top:-8px;">Extra Time is calculated automatically: (Check Out − Check In) − Duty Hour. Late minutes are then deducted to give the Sub Total.</div>
+
+    <div class="section-lbl">Monthly Summary</div>
+    <div class="calc-strip">
+      <div class="calc-item"><span class="k">Total Late</span><span class="v deduct" id="m_totalLate">${c.totalLate} min</span></div>
+      <div class="calc-item"><span class="k">Total Extra Minute</span><span class="v" id="m_totalNet">${c.totalNet} min</span></div>
+      <div class="calc-item"><span class="k">Extra Hour</span><span class="v bonus" id="m_hour">${c.extraHour.toFixed(2)} h</span></div>
+      <div class="calc-item"><span class="k">Extra Amount</span><span class="v amber" id="m_amount">${money(c.amount)}</span></div>
+    </div>
+
+    <div class="grand">
+      <div class="grand-line"><span>Basic Salary</span><b id="m_basic">${money(c.basic)}</b></div>
+      <div class="grand-line"><span>+ Extra Amount</span><b id="m_amount2">${money(c.amount)}</b></div>
+      <div class="grand-line" style="border-bottom:none;"><span>+ Govt Holiday Amount</span><b id="m_holiday">${money(c.holiday)}</b></div>
+      <div class="grand-final"><span class="k">Grand Total</span><span class="v" id="m_grand">${money(c.grand)}</span></div>
+    </div>
+
+    <button class="btn-print" id="btnPrint">⬇ Download PDF</button>
+    <div class="pdf-status" id="pdfStatus"></div>
+  `;
+
+  wrap.querySelectorAll('[data-empfield]').forEach(el => {
+    const f = el.getAttribute('data-empfield');
+    el.addEventListener('input', () => {
+      if((f==='dutyStart' || f==='dutyEnd') && /^\d{2}$/.test(el.value)) el.value = el.value + ':';
+      updateEmpField(emp.id, f, el.value);
+    });
+    el.addEventListener('change', () => updateEmpField(emp.id, f, el.value));
+  });
+  wrap.querySelectorAll('input[data-day], select[data-day]').forEach(el => {
+    const d = el.getAttribute('data-day');
+    const field = el.getAttribute('data-field');
+    el.addEventListener('input', () => {
+      if(field==='checkIn' || field==='checkOut'){
+        if(/^\d{2}$/.test(el.value)) el.value = el.value + ':';
+      }
+      updateDayField(emp.id, d, field, el.value);
+    });
+    el.addEventListener('change', () => updateDayField(emp.id, d, field, el.value));
+  });
+  document.getElementById('btnPrint').addEventListener('click', () => downloadPDF(emp));
+
+  if(!unlocked){
+    wrap.querySelectorAll('input, select').forEach(el => el.disabled = true);
+    const banner = document.getElementById('unlockBannerBtn');
+    if(banner) banner.addEventListener('click', openLockOverlay);
+  }
+}
+
+function downloadPDF(emp){
+  const statusEl = document.getElementById('pdfStatus');
+  try{
+    if(!window.jspdf){
+      statusEl.textContent = 'PDF library still loading — try again in a moment.';
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const c = monthlyCalc(emp);
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(15);
+    doc.text('PKG Salary Calculation', 14, 16);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9.5);
+    doc.text('Monthly Payslip', 14, 22);
+
+    doc.setFontSize(10);
+    doc.text(`Employee: ${emp.name || 'Unnamed employee'}`, 14, 31);
+    doc.text(`Designation: ${emp.designation || '-'}`, 14, 37);
+    doc.text(`Employee ID: ${emp.empId || '-'}`, 14, 43);
+    doc.text(`Period: ${periodLabel()}`, 14, 49);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 55);
+
+    const rows = c.dates.map(dt => {
+      const day = getDay(emp, dt);
+      const autoExtra = computeAutoExtraMinutes(day, emp.dutyHour);
+      const autoLate = computeAutoLateMinutes(emp, day);
+      const net = Math.max(0, autoExtra - autoLate);
+      const inTime = day.checkIn ? (day.checkIn + ' ' + day.checkInPeriod) : '-';
+      const outTime = day.checkOut ? (day.checkOut + ' ' + day.checkOutPeriod) : '-';
+      return [formatDateLabel(dt), inTime, outTime, day.status, String(autoLate), String(autoExtra), String(net)];
+    });
+
+    doc.autoTable({
+      head: [['Date','In','Out','Status','Late(m)','Extra(m)','Sub Total']],
+      body: rows,
+      startY: 61,
+      styles: { fontSize: 7.5, cellPadding: 1.6 },
+      headStyles: { fillColor: [19,30,40], textColor: [237,234,224] },
+      alternateRowStyles: { fillColor: [246,244,238] }
+    });
+
+    let y = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10.5);
+    doc.text(`Basic Salary: ${moneyPdf(c.basic)}`, 14, y);
+    doc.text(`Extra Amount: ${moneyPdf(c.amount)}  (Extra Hour: ${c.extraHour.toFixed(2)} h)`, 14, y+7);
+    doc.text(`Government Holiday Amount: ${moneyPdf(c.holiday)}`, 14, y+14);
+    doc.setDrawColor(169,129,46);
+    doc.setLineWidth(0.6);
+    doc.line(14, y+19, 100, y+19);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(13);
+    doc.text(`Grand Total: ${moneyPdf(c.grand)}`, 14, y+27);
+
+    const fname = (emp.name || 'employee').replace(/[^a-zA-Z0-9]+/g,'_') + '_payslip.pdf';
+    doc.save(fname);
+    statusEl.textContent = 'PDF downloaded ✓';
+    setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = 'Could not generate PDF — please try again.';
+  }
+}
+
+function render(){
+  refreshPeriodReadout();
+  updateMenuLabels();
+  if(view.mode==='list'){ renderList(); }
+  else {
+    const emp = employees.find(e=>e.id===view.id);
+    if(!emp){ goList(); return; }
+    renderDetail(emp);
+  }
+}
+
+document.getElementById('backBtn').addEventListener('click', goList);
+
+/* ---------------- LOCK / VIEWER ---------------- */
+function openLockOverlay(){
+  document.getElementById('menuPanel').classList.remove('open');
+  document.getElementById('periodPanel').classList.remove('open');
+  document.getElementById('lockError').textContent = '';
+  document.getElementById('lockPwInput').value = '';
+  document.getElementById('lockOverlay').style.display = 'flex';
+  setTimeout(()=>{ const el=document.getElementById('lockPwInput'); if(el) el.focus(); }, 50);
+}
+function closeLockOverlay(){ document.getElementById('lockOverlay').style.display = 'none'; }
+function tryUnlock(){
+  const pw = document.getElementById('lockPwInput').value;
+  if(pw === APP_PASSWORD){
+    unlocked = true;
+    closeLockOverlay();
+    render();
+  } else {
+    document.getElementById('lockError').textContent = 'Incorrect password. Try again.';
+  }
+}
+document.getElementById('lockUnlockBtn').addEventListener('click', tryUnlock);
+document.getElementById('lockPwInput').addEventListener('keydown', (e) => { if(e.key==='Enter') tryUnlock(); });
+document.getElementById('lockCancelBtn').addEventListener('click', closeLockOverlay);
+document.getElementById('lockViewerLink').addEventListener('click', () => {
+  unlocked = false;
+  closeLockOverlay();
+  render();
+});
+
+/* ---------------- 3-DOT MENU ---------------- */
+document.getElementById('menuBtn').addEventListener('click', () => {
+  document.getElementById('periodPanel').classList.remove('open');
+  document.getElementById('menuPanel').classList.toggle('open');
+});
+document.getElementById('periodBtn').addEventListener('click', () => {
+  document.getElementById('menuPanel').classList.remove('open');
+});
+function updateMenuLabels(){
+  const btn = document.getElementById('menuViewerBtn');
+  if(!btn) return;
+  btn.textContent = unlocked ? '🔒 Switch to Viewer' : '🔓 Unlock Edit Mode';
+}
+document.getElementById('menuPrintBtn').addEventListener('click', () => {
+  document.getElementById('menuPanel').classList.remove('open');
+  openPrintModal();
+});
+document.getElementById('menuViewerBtn').addEventListener('click', () => {
+  document.getElementById('menuPanel').classList.remove('open');
+  if(unlocked){ unlocked = false; render(); }
+  else { openLockOverlay(); }
+});
+
+/* ---------------- PRINT / EXPORT ---------------- */
+function openPrintModal(){
+  const overlay = document.getElementById('printOverlay');
+  const card = document.getElementById('printModalCard');
+  if(employees.length===0){
+    card.innerHTML = `<h2>🖨️ Print / Export</h2><p class="sub">No employees yet. Add an employee first.</p>
+      <div class="modal-btn-row"><button class="modal-btn ghost" id="printCloseBtn" style="flex:1;">Close</button></div>`;
+    overlay.style.display = 'flex';
+    document.getElementById('printCloseBtn').addEventListener('click', () => overlay.style.display='none');
+    return;
+  }
+  const rowsHtml = employees.map(emp => {
+    const c = monthlyCalc(emp);
+    return `<label class="emp-check-row"><input type="checkbox" class="print-check" value="${emp.id}" checked />
+      <span class="nm">${escapeHtml(emp.name) || 'Unnamed employee'}</span>
+      <span class="amt">${money(c.grand)}</span></label>`;
+  }).join('');
+  card.innerHTML = `
+    <h2>🖨️ Print / Export Salary</h2>
+    <p class="sub">Select employees to include.</p>
+    <label class="select-all-row"><input type="checkbox" id="selectAllChk" checked /><span>Select All (${employees.length})</span></label>
+    <div id="printEmpList">${rowsHtml}</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn ghost" id="printCloseBtn">Cancel</button>
+      <button class="modal-btn primary" id="printCsvBtn">⬇ CSV / Excel</button>
+    </div>
+    <div class="modal-btn-row">
+      <button class="modal-btn primary" id="printPdfBtn" style="width:100%;">🖨️ Print PDF</button>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+  document.getElementById('printCloseBtn').addEventListener('click', () => overlay.style.display='none');
+  document.getElementById('selectAllChk').addEventListener('change', (e) => {
+    card.querySelectorAll('.print-check').forEach(cb => cb.checked = e.target.checked);
+  });
+  const getSelected = () => Array.from(card.querySelectorAll('.print-check:checked')).map(cb=>cb.value);
+  document.getElementById('printPdfBtn').addEventListener('click', () => {
+    const sel = getSelected();
+    if(sel.length===0) return;
+    combinedPrintPDF(sel);
+  });
+  document.getElementById('printCsvBtn').addEventListener('click', () => {
+    const sel = getSelected();
+    if(sel.length===0) return;
+    exportCSV(sel);
+  });
+}
+
+function combinedPrintPDF(selectedIds){
+  if(!window.jspdf){ alert('PDF library still loading — try again in a moment.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('PKG Salary Calculation', 14, 16);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+  doc.text('Salary Summary — ' + periodLabel(), 14, 22);
+  doc.setFontSize(9);
+  doc.text('Generated: ' + new Date().toLocaleDateString(), 14, 28);
+
+  const selected = employees.filter(e => selectedIds.includes(e.id));
+  let grandSum = 0;
+  const rows = selected.map((emp, idx) => {
+    const c = monthlyCalc(emp);
+    grandSum += c.grand;
+    return [String(idx+1), emp.name || 'Unnamed', emp.designation || '-', emp.empId || '-',
+      moneyPdf(c.basic), moneyPdf(c.amount), moneyPdf(c.holiday), moneyPdf(c.grand)];
+  });
+
+  doc.autoTable({
+    head: [['SL','Name','Designation','ID','Basic','Extra','Holiday','Grand Total']],
+    body: rows,
+    startY: 34,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [19,30,40], textColor: [237,234,224] },
+    alternateRowStyles: { fillColor: [246,244,238] },
+    foot: [['', '', '', '', '', '', 'Total', moneyPdf(grandSum)]],
+    footStyles: { fillColor: [169,129,46], textColor: [27,20,0], fontStyle: 'bold' }
+  });
+
+  doc.save('salary_summary_' + toISO(new Date()) + '.pdf');
+  document.getElementById('printOverlay').style.display = 'none';
+}
+
+function exportCSV(selectedIds){
+  const selected = employees.filter(e => selectedIds.includes(e.id));
+  const esc = v => '"' + String(v).replace(/"/g,'""') + '"';
+  let csv = 'SL,Name,Designation,Employee ID,Basic Salary,Extra Amount,Govt Holiday,Grand Total\n';
+  let grandSum = 0;
+  selected.forEach((emp, idx) => {
+    const c = monthlyCalc(emp);
+    grandSum += c.grand;
+    csv += [idx+1, esc(emp.name||'Unnamed employee'), esc(emp.designation||''), esc(emp.empId||''),
+      c.basic, c.amount.toFixed(2), c.holiday, c.grand.toFixed(2)].join(',') + '\n';
+  });
+  csv += `,,,,,,Total,${grandSum.toFixed(2)}\n`;
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'salary_summary_' + toISO(new Date()) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('printOverlay').style.display = 'none';
+}
+
+(async function init(){
+  await loadPeriod();
+  await loadEmployees();
+  updateMenuLabels();
+  render();
+})();
+</script>
+</body>
+</html>
