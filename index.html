@@ -5,280 +5,367 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 <title>PKG Salary Calculation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
-    --paper:#EBE8DD;
-    --paper-line:rgba(20,32,42,0.045);
+    --paper:#F6F8FB;
+    --paper-line:rgba(15,23,42,0.02);
     --card:#FFFFFF;
-    --ink:#181F29;
-    --ink-soft:#606A78;
-    --navy:#131E28;
-    --navy-deep:#0A1319;
-    --slate:#2F4858;
-    --brass:#A9812E;
-    --brass-deep:#8A6A22;
-    --brass-soft:#EFE3C4;
-    --oxblood:#7A2E2E;
-    --oxblood-soft:#F1DEDA;
-    --forest:#3B6B4E;
-    --forest-soft:#DCE7DD;
-    --line:#D7D0BC;
+    --ink:#0F172A;
+    --ink-soft:#64748B;
+    --navy:#0F172A;
+    --navy-deep:#060B14;
+    --slate:#334155;
+    --brass:#3B82F6;
+    --brass-deep:#2563EB;
+    --brass-soft:#E8F0FE;
+    --oxblood:#DC2626;
+    --oxblood-soft:#FEE2E2;
+    --forest:#10B981;
+    --forest-soft:#D9F7EA;
+    --amber:#F59E0B;
+    --amber-deep:#B45309;
+    --amber-soft:#FEF3C7;
+    --line:#E6EAF1;
+    --shadow-sm:0 1px 2px rgba(15,23,42,0.05), 0 1px 3px rgba(15,23,42,0.06);
+    --shadow-md:0 4px 14px rgba(15,23,42,0.07);
+    --radius:12px;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:
-      repeating-linear-gradient(180deg, transparent, transparent 27px, var(--paper-line) 27px, var(--paper-line) 28px),
-      var(--paper);
+    background:var(--paper);
     color:var(--ink);
     font-family:'Inter',system-ui,sans-serif;
     -webkit-tap-highlight-color:transparent;
     padding-bottom:44px;
   }
   .topbar{
-    background:linear-gradient(160deg,var(--navy-deep),var(--navy));
-    color:#EDEAE0;
-    padding:16px 16px 16px;
+    background:linear-gradient(135deg,var(--navy-deep),var(--navy));
+    color:#F1F5F9;
+    padding:18px 16px 18px;
     position:relative;
     overflow:hidden;
-    border-bottom:3px solid var(--brass);
   }
   .topbar::after{
     content:"";
     position:absolute;
-    right:-30px; top:-40px;
-    width:150px; height:150px;
-    border:1px solid rgba(237,234,224,0.10);
+    right:-40px; top:-50px;
+    width:180px; height:180px;
+    background:radial-gradient(circle, rgba(59,130,246,0.18), transparent 70%);
     border-radius:50%;
   }
   .toprow{ display:flex; align-items:center; justify-content:space-between; gap:8px; position:relative; z-index:1; }
   .toprow-left{ display:flex; align-items:center; gap:10px; min-width:0; }
   .back-btn{
-    background:rgba(237,234,224,0.12); border:1px solid rgba(237,234,224,0.2);
-    color:#EDEAE0; width:32px; height:32px; border-radius:8px; font-size:16px; cursor:pointer; flex-shrink:0;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14);
+    color:#F1F5F9; width:32px; height:32px; border-radius:9px; font-size:16px; cursor:pointer; flex-shrink:0;
+    transition:background .15s ease;
   }
+  .back-btn:hover{ background:rgba(255,255,255,0.16); }
   .brand-seal{
-    width:38px; height:38px; border-radius:50%; flex-shrink:0;
-    border:1.5px solid var(--brass); display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces',serif; font-weight:700; font-size:14px; color:var(--brass);
-    background:rgba(169,129,46,0.08);
+    width:38px; height:38px; border-radius:10px; flex-shrink:0;
+    border:1px solid rgba(59,130,246,0.4); display:flex; align-items:center; justify-content:center;
+    font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:14px; color:var(--brass);
+    background:rgba(59,130,246,0.12);
   }
   .title-block{ min-width:0; }
   .eyebrow{
-    font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.15em;
-    text-transform:uppercase; color:#B9A46C; margin:0 0 3px;
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em;
+    text-transform:uppercase; color:#93C5FD; margin:0 0 3px;
   }
   h1{
-    font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin:0;
+    font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:19px; margin:0;
     letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .sub{ font-size:11.5px; color:#BFC7CE; margin-top:3px; font-family:'Inter',sans-serif; }
+  .sub{ font-size:11.5px; color:#94A3B8; margin-top:3px; font-family:'Inter',sans-serif; }
   .period-btn{
-    background:rgba(169,129,46,0.16); border:1px solid var(--brass);
-    color:#E8CD8A; width:36px; height:36px; border-radius:9px; font-size:16px; cursor:pointer; flex-shrink:0;
+    background:rgba(59,130,246,0.14); border:1px solid rgba(59,130,246,0.4);
+    color:#93C5FD; width:36px; height:36px; border-radius:10px; font-size:16px; cursor:pointer; flex-shrink:0;
+    transition:background .15s ease;
   }
+  .period-btn:hover{ background:rgba(59,130,246,0.22); }
   .period-panel{
-    display:none; margin-top:12px; background:rgba(237,234,224,0.06);
-    border:1px solid rgba(237,234,224,0.18); border-radius:10px; padding:12px; position:relative; z-index:1;
+    display:none; margin-top:12px; background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:12px; position:relative; z-index:1;
   }
   .period-panel.open{ display:block; }
   .period-panel .row{ display:flex; gap:8px; }
   .period-panel .field{ flex:1; }
-  .period-panel label{ font-size:9.5px; color:#B9A46C; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:4px; }
+  .period-panel label{ font-size:9.5px; color:#93C5FD; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:4px; }
   .period-panel input{
-    width:100%; border:1px solid rgba(237,234,224,0.25); background:rgba(255,255,255,0.06);
-    color:#EDEAE0; border-radius:7px; padding:7px 8px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
+    width:100%; border:1px solid rgba(255,255,255,0.16); background:rgba(255,255,255,0.05);
+    color:#F1F5F9; border-radius:8px; padding:8px 9px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
   }
   .period-panel .apply-btn{
-    margin-top:9px; width:100%; background:var(--brass); border:none; color:#1B1400;
-    font-weight:700; font-family:'Fraunces',serif; padding:8px; border-radius:7px; cursor:pointer; font-size:13px;
+    margin-top:9px; width:100%; background:var(--brass); border:none; color:#fff;
+    font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; padding:9px; border-radius:8px; cursor:pointer; font-size:13px;
+    transition:background .15s ease;
   }
-  .period-readout{ font-size:11px; color:#E8CD8A; margin-top:6px; font-family:'JetBrains Mono',monospace; }
+  .period-panel .apply-btn:hover{ background:var(--brass-deep); }
+  .period-readout{ font-size:11px; color:#93C5FD; margin-top:6px; font-family:'JetBrains Mono',monospace; }
 
   .wrap{ padding:14px; max-width:720px; margin:0 auto; }
 
-  /* ---------- LIST ---------- */
-  .summary{ display:flex; gap:10px; margin:0 0 14px; }
-  .sum-card{
-    flex:1; background:var(--card); border:1px solid var(--line); border-radius:10px;
-    padding:11px 13px; box-shadow:0 2px 6px rgba(20,32,42,0.05); border-left:3px solid var(--brass);
+  @media (min-width:900px){
+    body{ padding-bottom:60px; }
+    .topbar{ padding:22px 5% 22px; }
+    .toprow{ max-width:1100px; margin:0 auto; }
+    .period-panel{ max-width:1100px; margin-left:auto; margin-right:auto; }
+    .wrap{ max-width:1100px; padding:26px 5% 40px; }
+    h1{ font-size:22px; }
+    .sub{ font-size:12.5px; }
+    table.daygrid{ font-size:13px; }
+    .detail-grid{ display:grid; grid-template-columns:1fr 1.25fr; gap:20px; align-items:start; }
+    .detail-left, .detail-right{ min-width:0; }
   }
-  .sum-card .lbl{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
-  .sum-card .val{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; margin-top:2px; color:var(--navy); }
+  @media (min-width:1300px){
+    .toprow, .period-panel, .wrap{ max-width:1280px; }
+  }
+
+  /* ---------- LIST ---------- */
+  .summary{ display:flex; gap:12px; margin:0 0 18px; }
+  .sum-card{
+    flex:1; background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+  }
+  .sum-card::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brass);
+  }
+  .sum-card .lbl{ font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .sum-card .val{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; margin-top:4px; color:var(--ink); }
 
   .btn-add{
-    width:100%; background:var(--navy); color:#EDEAE0; border:none; border-radius:10px;
-    padding:13px; font-size:14.5px; font-weight:600; font-family:'Fraunces',serif; margin-bottom:14px;
-    cursor:pointer; letter-spacing:.01em;
+    width:100%; background:var(--navy); color:#fff; border:none; border-radius:var(--radius);
+    padding:13px; font-size:14.5px; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; margin-bottom:16px;
+    cursor:pointer; letter-spacing:.01em; box-shadow:var(--shadow-sm); transition:background .15s ease, transform .1s ease;
   }
-  .btn-add:active{ background:var(--navy-deep); }
+  .btn-add:hover{ background:#1E293B; }
+  .btn-add:active{ transform:scale(0.99); }
 
-  .register-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; padding:0 2px; }
-  .register-head .t{ font-family:'Fraunces',serif; font-size:14px; font-weight:600; color:var(--navy); }
+  .register-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px; padding:0 2px; }
+  .register-head .t{ font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; color:var(--ink); }
   .register-head .n{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-soft); }
 
-  .roster{ display:flex; flex-direction:column; gap:8px; margin-bottom:6px; }
+  .roster{ display:flex; flex-direction:column; gap:9px; margin-bottom:6px; }
   .roster-row{
-    background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 13px;
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:13px 14px;
     display:flex; align-items:center; gap:12px; cursor:pointer; position:relative;
+    box-shadow:var(--shadow-sm); transition:box-shadow .15s ease, border-color .15s ease, transform .1s ease;
   }
-  .roster-row:active{ background:#FAF8F2; }
+  .roster-row:hover{ box-shadow:var(--shadow-md); border-color:#CBD5E1; transform:translateY(-1px); }
+  .roster-row:active{ transform:translateY(0); }
   .roster-sl{
     font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--brass); font-weight:700;
-    width:22px; text-align:center; flex-shrink:0; border-right:1px dashed var(--line); padding-right:10px;
+    width:22px; text-align:center; flex-shrink:0; border-right:1px solid var(--line); padding-right:10px;
   }
   .roster-mid{ flex:1; min-width:0; }
-  .roster-name{ font-family:'Fraunces',serif; font-weight:600; font-size:14.5px; color:var(--ink); }
-  .roster-id{ font-size:10.5px; color:var(--ink-soft); font-family:'JetBrains Mono',monospace; margin-top:1px; }
-  .roster-figs{ display:flex; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:5px; }
+  .roster-name{ font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:14.5px; color:var(--ink); }
+  .roster-id{ font-size:10.5px; color:var(--ink-soft); font-family:'JetBrains Mono',monospace; margin-top:2px; }
+  .roster-figs{ display:flex; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:6px; }
   .roster-figs b{ color:var(--ink); font-size:11px; }
   .roster-total{ text-align:right; flex-shrink:0; }
-  .roster-total .amt{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--navy); border-bottom:1px solid var(--brass); padding-bottom:2px; }
+  .roster-total .amt{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--brass-deep); }
   .roster-total .lbl{ font-size:9px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
-  .chevron{ color:var(--line); font-size:14px; }
+  .chevron{ color:#CBD5E1; font-size:16px; }
 
-  .empty{ text-align:center; padding:40px 20px; color:var(--ink-soft); }
-  .empty .big{ font-size:32px; margin-bottom:6px; }
-  .note{ font-size:11px; color:var(--ink-soft); text-align:center; margin-top:16px; line-height:1.55; }
+  .empty{ text-align:center; padding:44px 20px; color:var(--ink-soft); background:var(--card); border:1px dashed var(--line); border-radius:var(--radius); }
+  .empty .big{ font-size:32px; margin-bottom:8px; }
+  .note{ font-size:11.5px; color:var(--ink-soft); text-align:center; margin-top:16px; line-height:1.6; }
   .note b{ color:var(--ink); }
 
   /* ---------- DETAIL ---------- */
+  .section-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px; margin-bottom:16px; box-shadow:var(--shadow-sm);
+  }
   .section-lbl{
-    font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase;
-    letter-spacing:.08em; color:var(--brass); margin:16px 2px 8px; font-weight:600;
+    font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; text-transform:none;
+    letter-spacing:0; color:var(--ink); margin:0 0 14px; font-weight:700;
+    display:flex; align-items:center; gap:7px;
+  }
+  .section-lbl .dot{
+    width:7px; height:7px; border-radius:50%; background:var(--brass); flex-shrink:0;
   }
   .section-lbl:first-child{ margin-top:0; }
-  .name-edit-row{ display:flex; gap:8px; margin-bottom:10px; }
+  .name-edit-row{ display:flex; gap:12px; margin-bottom:12px; }
+  .name-edit-row:last-child{ margin-bottom:0; }
   .name-edit-row .field{ flex:1; }
   .field label{
-    font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;
-    font-weight:600; display:block; margin-bottom:4px;
+    font-size:11px; color:var(--ink-soft); text-transform:none; letter-spacing:0;
+    font-weight:600; display:block; margin-bottom:6px;
   }
   .field input, .field select{
-    border:1px solid var(--line); background:#FBFAF6; border-radius:8px; padding:9px 9px;
-    font-size:13.5px; font-family:'JetBrains Mono',monospace; color:var(--ink); width:100%;
+    border:1px solid var(--line); background:#F8FAFC; border-radius:9px; padding:10px 11px;
+    font-size:13.5px; font-family:'JetBrains Mono',monospace; color:var(--ink); width:100%; height:40px;
+    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
   }
-  .field.text input{ font-family:'Inter',sans-serif; }
-  .field input:focus, .field select:focus{ outline:2px solid var(--slate); outline-offset:1px; background:#fff; }
+  .field.text input{ font-family:'Inter',sans-serif; font-weight:500; }
+  .field input:focus, .field select:focus{
+    outline:none; border-color:var(--brass); background:#fff; box-shadow:0 0 0 3px rgba(59,130,246,0.14);
+  }
+  .field input:hover, .field select:hover{ border-color:#CBD5E1; }
 
-  .config-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; }
+  .config-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:4px; }
   .config-grid .field.full{ grid-column:1/-1; }
-  .holiday-field input, .duty-field input{ border-color:var(--brass); background:var(--brass-soft); font-weight:600; color:var(--navy); }
+  .holiday-field input, .duty-field input{ border-color:var(--brass-soft); background:var(--brass-soft); font-weight:600; color:var(--brass-deep); }
   .icon-label{ display:flex; align-items:center; gap:5px; }
   .icon-label .ic{ font-size:12px; }
+  .auto-tag{
+    font-size:8.5px; text-transform:uppercase; letter-spacing:.04em; font-weight:700;
+    color:var(--forest); background:var(--forest-soft); border:1px solid rgba(16,185,129,0.35);
+    padding:1px 6px; border-radius:999px; margin-left:2px;
+  }
 
   .period-chip{
-    display:inline-block; background:var(--brass-soft); color:var(--brass-deep); border:1px solid var(--brass);
-    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; margin-bottom:12px;
+    display:inline-flex; align-items:center; gap:6px; background:var(--brass-soft); color:var(--brass-deep); border:1px solid rgba(59,130,246,0.25);
+    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; padding:6px 12px; border-radius:999px; margin-bottom:16px;
   }
 
-  .day-table-wrap{ border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:10px 0 14px; background:var(--card); }
+  .input-with-clear{ position:relative; }
+  .input-with-clear input{ padding-right:36px; }
+  .clear-name-btn{
+    position:absolute; right:5px; top:50%; transform:translateY(-50%);
+    width:26px; height:26px; border-radius:7px; border:1px solid var(--line);
+    background:#F1F5F9; color:var(--ink-soft); font-size:12px; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s ease;
+  }
+  .clear-name-btn:hover{ background:var(--oxblood-soft); color:var(--oxblood); border-color:var(--oxblood); }
+  .attendance-summary{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .stat-pill{
+    flex:1; min-width:90px; background:#F8FAFC; border:1px solid var(--line); border-radius:10px;
+    padding:9px 12px; display:flex; flex-direction:column; gap:2px;
+  }
+  .stat-pill .k{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; font-weight:600; display:flex; align-items:center; gap:5px; }
+  .stat-pill .k .sw{ width:7px; height:7px; border-radius:2px; display:inline-block; }
+  .stat-pill .v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; color:var(--ink); }
+  .stat-pill.present .k .sw{ background:var(--forest); }
+  .stat-pill.absent .k .sw{ background:var(--oxblood); }
+  .stat-pill.off .k .sw{ background:var(--ink-soft); }
+  .stat-pill.overtime .k .sw{ background:var(--brass); }
+
+  .day-table-wrap{ border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--card); }
   .day-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  table.daygrid{ border-collapse:collapse; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  table.daygrid{ border-collapse:collapse; font-family:'JetBrains Mono',monospace; font-size:12px; width:100%; }
   table.daygrid thead th{
-    background:var(--navy); color:#EDEAE0; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em;
-    padding:8px 6px; white-space:nowrap; position:sticky; top:0; font-family:'Inter',sans-serif; font-weight:600;
+    background:var(--navy); color:#F1F5F9; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em;
+    padding:9px 6px; white-space:nowrap; position:sticky; top:0; font-family:'Inter',sans-serif; font-weight:600;
   }
-  table.daygrid td{ padding:6px 5px; border-top:1px solid var(--line); background:var(--card); white-space:nowrap; }
+  table.daygrid td{ padding:7px 5px; border-top:1px solid var(--line); background:var(--card); white-space:nowrap; }
   table.daygrid td.date-cell{
-    position:sticky; left:0; background:#FBFAF6; font-weight:700; color:var(--navy);
-    text-align:center; border-right:1px solid var(--line); font-family:'Fraunces',serif; font-size:11.5px;
+    position:sticky; left:0; background:#F8FAFC; font-weight:700; color:var(--ink);
+    text-align:center; border-right:1px solid var(--line); font-family:'Plus Jakarta Sans',sans-serif; font-size:11.5px;
   }
-  table.daygrid tr.off-row td{ background:#F0EEE6; }
+  table.daygrid tr.off-row td{ background:#F1F5F9; }
   table.daygrid tr.absent-row td{ background:var(--oxblood-soft); }
   table.daygrid select.status-sel{
-    border:1px solid var(--line); border-radius:6px; padding:5px 4px; font-family:'JetBrains Mono',monospace;
-    font-size:11px; background:#fff; color:var(--ink); width:74px;
+    border:1px solid var(--line); border-radius:7px; padding:6px 4px; font-family:'JetBrains Mono',monospace;
+    font-size:11px; background:#fff; color:var(--ink); width:80px; transition:border-color .15s ease;
   }
+  table.daygrid select.status-sel:focus{ outline:none; border-color:var(--brass); }
   table.daygrid input.min-input{
-    width:42px; border:1px solid var(--line); border-radius:6px; padding:5px 4px;
+    width:42px; border:1px solid var(--line); border-radius:7px; padding:6px 4px;
     font-family:'JetBrains Mono',monospace; font-size:11.5px; background:#fff; color:var(--ink); text-align:center;
   }
-  td.net-cell{ font-weight:700; text-align:center; color:var(--forest); width:42px; }
-  td.extra-cell{ font-weight:700; text-align:center; color:var(--brass-deep); width:42px; background:var(--brass-soft) !important; }
+  td.net-cell{ font-weight:700; text-align:center; color:var(--forest); width:44px; }
+  td.extra-cell{ font-weight:700; text-align:center; color:var(--brass-deep); width:44px; background:var(--brass-soft) !important; }
 
   .time-cell{ display:flex; align-items:center; gap:3px; }
   .time-txt{
-    width:44px; border:1px solid var(--line); border-radius:6px; padding:5px 4px;
+    width:46px; border:1px solid var(--line); border-radius:7px; padding:6px 4px;
     font-family:'JetBrains Mono',monospace; font-size:11.5px; text-align:center; background:#fff; color:var(--ink);
+    transition:border-color .15s ease;
   }
+  .time-txt:focus{ outline:none; border-color:var(--brass); }
   select.ampm-sel{
-    border:1px solid var(--slate); border-radius:6px; padding:5px 3px; font-family:'JetBrains Mono',monospace;
-    font-size:10.5px; font-weight:700; background:#EAF0F3; color:var(--slate); width:40px;
+    border:1px solid var(--line); border-radius:7px; padding:6px 3px; font-family:'JetBrains Mono',monospace;
+    font-size:10.5px; font-weight:700; background:#F1F5F9; color:var(--slate); width:42px;
   }
 
   .calc-strip{
-    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
-    display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; margin-bottom:12px;
+    background:#F8FAFC; border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+    display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;
   }
   .calc-item{ display:flex; flex-direction:column; }
-  .calc-item .k{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
-  .calc-item .v{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14px; margin-top:2px;}
+  .calc-item .k{ font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+  .calc-item .v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; margin-top:3px;}
   .v.deduct{ color:var(--oxblood); }
   .v.bonus{ color:var(--forest); }
-  .v.amber{ color:var(--brass); }
+  .v.amber{ color:var(--brass-deep); }
 
   .grand{
-    background:linear-gradient(160deg,var(--navy-deep),var(--navy)); color:#EDEAE0; border-radius:12px; padding:15px 16px;
-    display:flex; flex-direction:column; gap:5px; margin-bottom:10px; border:1px solid var(--navy-deep);
+    background:linear-gradient(135deg,var(--navy-deep),var(--navy)); color:#F1F5F9; border-radius:var(--radius); padding:18px 20px;
+    display:flex; flex-direction:column; gap:6px; margin-bottom:16px; box-shadow:var(--shadow-md);
   }
-  .grand-line{ display:flex; justify-content:space-between; font-size:12.5px; color:#C7CDD3; padding-bottom:5px; border-bottom:1px solid rgba(237,234,224,0.14); }
-  .grand-line b{ color:#EDEAE0; font-family:'JetBrains Mono',monospace; font-weight:500; }
+  .grand-line{ display:flex; justify-content:space-between; font-size:12.5px; color:#94A3B8; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .grand-line b{ color:#F1F5F9; font-family:'JetBrains Mono',monospace; font-weight:500; }
   .grand-final{
-    display:flex; justify-content:space-between; align-items:center; margin-top:7px; padding-top:10px;
-    border-top:3px double rgba(169,129,46,0.65);
+    display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:12px;
+    border-top:1px solid rgba(59,130,246,0.35);
   }
-  .grand-final .k{ font-family:'Fraunces',serif; font-size:14px; font-weight:600; letter-spacing:.01em; }
-  .grand-final .v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:21px; color:#E8CD8A; }
+  .grand-final .k{ font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; letter-spacing:.01em; }
+  .grand-final .v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:22px; color:#93C5FD; }
 
   .btn-print{
     width:100%; background:#fff; border:1.5px solid var(--brass); color:var(--brass-deep);
-    font-family:'Fraunces',serif; font-weight:600; font-size:14px; padding:12px; border-radius:10px;
+    font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:14px; padding:12px; border-radius:10px;
     cursor:pointer; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:background .15s ease, box-shadow .15s ease;
   }
-  .btn-print:active{ background:var(--brass-soft); }
-  .pdf-status{ text-align:center; font-size:11px; color:var(--ink-soft); margin-bottom:18px; min-height:14px; }
+  .btn-print:hover{ background:var(--brass-soft); box-shadow:var(--shadow-sm); }
+  .print-btn-row{ display:flex; gap:8px; }
+  .print-btn-row .btn-print{ flex:1; margin-top:0; }
+  .label-btn{ border-color:var(--forest); color:#0D7A54; background:var(--forest-soft); }
+  .label-btn:hover{ background:#C7F0DC; }
+  .pdf-status{ text-align:center; font-size:11.5px; color:var(--ink-soft); margin-bottom:18px; min-height:14px; }
 
   /* ---------- MENU / MODALS ---------- */
   .menu-item{
-    width:100%; text-align:left; background:rgba(237,234,224,0.06); border:1px solid rgba(237,234,224,0.18);
-    color:#EDEAE0; padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:8px; cursor:pointer;
-    font-family:'Inter',sans-serif; display:flex; align-items:center; gap:8px;
+    width:100%; text-align:left; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12);
+    color:#F1F5F9; padding:11px 13px; border-radius:9px; font-size:13px; margin-bottom:8px; cursor:pointer;
+    font-family:'Inter',sans-serif; font-weight:500; display:flex; align-items:center; gap:8px; transition:background .15s ease;
   }
+  .menu-item:hover{ background:rgba(255,255,255,0.1); }
   .menu-item:last-child{ margin-bottom:0; }
   .modal-overlay{
-    position:fixed; inset:0; background:rgba(10,19,25,0.72); z-index:1000;
+    position:fixed; inset:0; background:rgba(6,11,20,0.6); backdrop-filter:blur(2px); z-index:1000;
     display:none; align-items:center; justify-content:center; padding:20px;
   }
   .modal-card{
-    background:var(--card); border-radius:14px; padding:20px; max-width:420px; width:100%;
-    max-height:85vh; overflow-y:auto; box-shadow:0 10px 40px rgba(0,0,0,0.3);
+    background:var(--card); border-radius:16px; padding:22px; max-width:420px; width:100%;
+    max-height:85vh; overflow-y:auto; box-shadow:0 20px 50px rgba(15,23,42,0.28);
   }
-  .modal-card h2{ font-family:'Fraunces',serif; font-size:17px; margin:0 0 4px; color:var(--navy); }
-  .modal-card p.sub{ font-size:12px; color:var(--ink-soft); margin:0 0 16px; }
+  .modal-card h2{ font-family:'Plus Jakarta Sans',sans-serif; font-size:17px; margin:0 0 4px; color:var(--ink); font-weight:700; }
+  .modal-card p.sub{ font-size:12.5px; color:var(--ink-soft); margin:0 0 16px; }
   .modal-field input[type=password]{
-    width:100%; border:1px solid var(--line); border-radius:8px; padding:10px;
-    font-family:'JetBrains Mono',monospace; font-size:14px; margin-bottom:8px; background:#FBFAF6; color:var(--ink);
+    width:100%; border:1px solid var(--line); border-radius:9px; padding:11px;
+    font-family:'JetBrains Mono',monospace; font-size:14px; margin-bottom:8px; background:#F8FAFC; color:var(--ink);
   }
+  .modal-field input[type=password]:focus{ outline:none; border-color:var(--brass); background:#fff; box-shadow:0 0 0 3px rgba(59,130,246,0.14); }
   .modal-error{ color:var(--oxblood); font-size:12px; margin-bottom:8px; min-height:14px; }
   .modal-btn-row{ display:flex; gap:8px; margin-top:10px; }
-  .modal-btn{ flex:1; padding:11px; border-radius:9px; border:none; font-family:'Fraunces',serif; font-weight:600; font-size:13.5px; cursor:pointer; }
-  .modal-btn.primary{ background:var(--navy); color:#EDEAE0; }
-  .modal-btn.ghost{ background:#F0EEE6; color:var(--ink); border:1px solid var(--line); }
-  .viewer-link{ display:block; text-align:center; margin-top:14px; font-size:12.5px; color:var(--slate); cursor:pointer; text-decoration:underline; }
-  .emp-check-row{ display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:13.5px; }
-  .emp-check-row input{ width:16px; height:16px; flex-shrink:0; }
-  .emp-check-row .nm{ flex:1; font-family:'Fraunces',serif; font-weight:600; }
+  .modal-btn{ flex:1; padding:11px; border-radius:10px; border:none; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:13.5px; cursor:pointer; transition:opacity .15s ease; }
+  .modal-btn:hover{ opacity:0.9; }
+  .modal-btn.primary{ background:var(--navy); color:#fff; }
+  .modal-btn.ghost{ background:#F1F5F9; color:var(--ink); border:1px solid var(--line); }
+  .viewer-link{ display:block; text-align:center; margin-top:14px; font-size:12.5px; color:var(--brass-deep); cursor:pointer; text-decoration:underline; }
+  .emp-check-row{ display:flex; align-items:center; gap:10px; padding:6px 9px; border-bottom:none; font-size:12.5px; background:#F8FAFC; border-radius:8px; margin-bottom:4px; }
+  .emp-check-row input{ width:16px; height:16px; flex-shrink:0; accent-color:var(--brass); }
+  .emp-check-row .nm{ flex:1; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; }
   .emp-check-row .amt{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft); }
-  .select-all-row{ display:flex; align-items:center; gap:10px; padding:8px 4px 10px; border-bottom:2px solid var(--brass); font-weight:600; font-size:13px; margin-bottom:2px; }
-  .select-all-row input{ width:16px; height:16px; }
+  .select-all-row{ display:flex; align-items:center; gap:10px; padding:8px 4px 12px; border-bottom:1px solid var(--line); font-weight:600; font-size:13px; margin-bottom:6px; }
+  .select-all-row input{ width:16px; height:16px; accent-color:var(--brass); }
   .lock-banner{
-    background:var(--oxblood-soft); color:var(--oxblood); border:1px solid var(--oxblood);
-    border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:600; text-align:center;
-    margin-bottom:14px; cursor:pointer;
+    background:var(--amber-soft); color:var(--amber-deep); border:1px solid rgba(245,158,11,0.35);
+    border-radius:10px; padding:11px 14px; font-size:12.5px; font-weight:600; text-align:left;
+    margin-bottom:16px; cursor:pointer; display:flex; align-items:center; gap:9px; transition:background .15s ease;
+  }
+  .lock-banner:hover{ background:#FDE9BE; }
+  .lock-banner .lock-ic{
+    width:26px; height:26px; border-radius:8px; background:rgba(245,158,11,0.18); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:13px;
   }
 </style>
 </head>
@@ -360,6 +447,10 @@ function formatDateLabel(iso){
   const d=new Date(iso+'T00:00:00');
   return d.getDate() + ' ' + d.toLocaleString('en-US',{month:'short'});
 }
+function formatDateLabelFull(iso){
+  const d=new Date(iso+'T00:00:00');
+  return d.getDate() + ' ' + d.toLocaleString('en-US',{month:'long'});
+}
 function defaultPeriod(){
   const today = new Date();
   const endDate = new Date(today.getFullYear(), today.getMonth(), 25);
@@ -369,7 +460,7 @@ function defaultPeriod(){
 
 function blankEmployee(){
   return { id: uid(), name:'', designation:'', empId:'', basicSalary:'', perHourRate:'', dutyHour:'',
-    dutyStart:'', dutyStartPeriod:'AM', dutyEnd:'', dutyEndPeriod:'PM', govtHolidayAmount:'', days:{} };
+    dutyStart:'', dutyStartPeriod:'AM', dutyEnd:'', dutyEndPeriod:'PM', govtHolidayDays:'', govtHolidayAmount:'', days:{} };
 }
 function getDay(emp, d){
   return emp.days[d] || { checkIn:'', checkInPeriod:'AM', checkOut:'', checkOutPeriod:'PM', status:'present' };
@@ -406,6 +497,16 @@ function computeAutoLateMinutes(emp, day){
   if(diff < -720) diff += 24*60;   /* overnight duty wrap-around */
   if(diff > 720) diff -= 24*60;
   return Math.max(0, diff);
+}
+/* Duty Hour auto-computed from Duty Start Time and Duty End Time */
+function calcAutoDutyHour(emp){
+  const startMin = parseTime12(emp.dutyStart, emp.dutyStartPeriod);
+  const endMin = parseTime12(emp.dutyEnd, emp.dutyEndPeriod);
+  if(startMin===null || endMin===null) return '';
+  let diff = endMin - startMin;
+  if(diff <= 0) diff += 24*60;
+  const hours = diff/60;
+  return (Math.round(hours*100)/100).toString();
 }
 /* Per-hour rate auto-computed from Basic Salary and Duty Hour, using the actual number of days in the selected period */
 function calcAutoPerHourRate(emp){
@@ -475,7 +576,15 @@ function updateEmpField(id, field, value){
   const emp = employees.find(e=>e.id===id);
   if(!emp) return;
   emp[field] = value;
-  if(field==='basicSalary' || field==='dutyHour'){
+  if(field==='dutyStart' || field==='dutyStartPeriod' || field==='dutyEnd' || field==='dutyEndPeriod'){
+    const autoHour = calcAutoDutyHour(emp);
+    if(autoHour !== ''){
+      emp.dutyHour = autoHour;
+      const dhEl = document.querySelector('[data-empfield="dutyHour"]');
+      if(dhEl) dhEl.value = autoHour;
+    }
+  }
+  if(field==='basicSalary' || field==='dutyHour' || field==='dutyStart' || field==='dutyStartPeriod' || field==='dutyEnd' || field==='dutyEndPeriod'){
     const auto = calcAutoPerHourRate(emp);
     if(auto !== ''){
       emp.perHourRate = auto;
@@ -530,11 +639,22 @@ function updateFooterUI(emp){
   set('m_basic', money(c.basic));
   set('m_holiday', money(c.holiday));
   set('m_grand', money(c.grand));
+  let presentCount=0, absentCount=0, offCount=0;
+  c.dates.forEach(dt => {
+    const day = getDay(emp, dt);
+    if(day.status==='off') offCount++;
+    else if(day.status==='absent') absentCount++;
+    else presentCount++;
+  });
+  set('statPresent', presentCount);
+  set('statAbsent', absentCount);
+  set('statOff', offCount);
+  set('statOvertime', c.extraHour.toFixed(1)+'h');
 }
 
 /* ---------------- PERIOD PANEL ---------------- */
 function periodLabel(){
-  return formatDateLabel(period.start) + ' – ' + formatDateLabel(period.end) + ', ' + new Date(period.end+'T00:00:00').getFullYear();
+  return formatDateLabelFull(period.start) + ' – ' + formatDateLabelFull(period.end) + ', ' + new Date(period.end+'T00:00:00').getFullYear();
 }
 function refreshPeriodReadout(){
   document.getElementById('periodReadout').textContent = 'Current period: ' + periodLabel();
@@ -687,64 +807,100 @@ function renderDetail(emp){
   const c = monthlyCalc(emp);
   let daysRows = c.dates.map(d => dayRow(emp, d)).join('');
 
+  let presentCount=0, absentCount=0, offCount=0;
+  c.dates.forEach(dt => {
+    const day = getDay(emp, dt);
+    if(day.status==='off') offCount++;
+    else if(day.status==='absent') absentCount++;
+    else presentCount++;
+  });
+
   wrap.innerHTML = `
-    ${!unlocked ? `<div class="lock-banner" id="unlockBannerBtn">🔒 Viewer Mode — Tap to Unlock Editing</div>` : ''}
-    <div class="period-chip">Period: ${periodLabel()}</div>
+    ${!unlocked ? `<div class="lock-banner" id="unlockBannerBtn"><span class="lock-ic">🔒</span> Viewer Mode — tap to unlock editing</div>` : ''}
+    <div class="period-chip">📆 Period: ${periodLabel()}</div>
 
-    <div class="section-lbl">Employee Details</div>
-    <div class="name-edit-row">
-      <div class="field text"><label>Employee Name</label><input type="text" value="${escapeHtml(emp.name)}" data-empfield="name" placeholder="Full name" /></div>
-      <div class="field text"><label>Position / Designation</label><input type="text" value="${escapeHtml(emp.designation)}" data-empfield="designation" placeholder="e.g. Supervisor" /></div>
-    </div>
-    <div class="name-edit-row">
-      <div class="field text"><label>Employee ID</label><input type="text" value="${escapeHtml(emp.empId)}" data-empfield="empId" placeholder="EMP-101" /></div>
-    </div>
+    <div class="detail-grid">
+    <div class="detail-left">
 
-    <div class="section-lbl">Duty Period</div>
-    <div class="config-grid">
-      <div class="field duty-field">
-        <label class="icon-label"><span class="ic">🕒</span> Duty Start Time</label>
-        ${dutyTimeField(emp, 'start')}
+    <div class="section-card">
+      <div class="section-lbl"><span class="dot"></span>Employee Details</div>
+      <div class="name-edit-row">
+        <div class="field text"><label>Employee Name</label>
+          <div class="input-with-clear">
+            <input type="text" value="${escapeHtml(emp.name)}" data-empfield="name" placeholder="Full name" id="empNameInput" />
+            <button type="button" class="clear-name-btn" id="clearNameBtn" title="Clear name">✕</button>
+          </div>
+        </div>
+        <div class="field text"><label>Position / Designation</label><input type="text" value="${escapeHtml(emp.designation)}" data-empfield="designation" placeholder="e.g. Supervisor" /></div>
       </div>
-      <div class="field duty-field">
-        <label class="icon-label"><span class="ic">🕗</span> Duty End Time</label>
-        ${dutyTimeField(emp, 'end')}
-      </div>
-      <div class="field duty-field full">
-        <label class="icon-label"><span class="ic">⏱️</span> Duty Hour (hr)</label>
-        <input type="number" inputmode="decimal" step="0.5" value="${emp.dutyHour}" data-empfield="dutyHour" placeholder="e.g. 7 or 9" />
+      <div class="name-edit-row">
+        <div class="field text"><label>Employee ID</label><input type="text" value="${escapeHtml(emp.empId)}" data-empfield="empId" placeholder="EMP-101" /></div>
       </div>
     </div>
-    <div class="note" style="margin-top:-4px;">Late is auto-calculated as (Check In − Duty Start Time). Extra Time is auto-calculated as (Check Out − Check In) − Duty Hour.</div>
 
-    <div class="section-lbl">Salary &amp; Rates</div>
-    <div class="config-grid">
-      <div class="field"><label>Basic Salary</label><input type="number" inputmode="decimal" value="${emp.basicSalary}" data-empfield="basicSalary" placeholder="0" /></div>
-      <div class="field"><label>Per Hour Rate</label><input type="number" inputmode="decimal" value="${emp.perHourRate}" data-empfield="perHourRate" placeholder="Auto" /></div>
-      <div class="field holiday-field full">
-        <label class="icon-label"><span class="ic">🏛️</span> Govt Holiday Amount</label>
-        <input type="number" inputmode="decimal" value="${emp.govtHolidayAmount}" data-empfield="govtHolidayAmount" placeholder="0" />
+    <div class="section-card">
+      <div class="section-lbl"><span class="dot"></span>Duty Period</div>
+      <div class="config-grid">
+        <div class="field duty-field">
+          <label class="icon-label"><span class="ic">🕒</span> Duty Start Time</label>
+          ${dutyTimeField(emp, 'start')}
+        </div>
+        <div class="field duty-field">
+          <label class="icon-label"><span class="ic">🕗</span> Duty End Time</label>
+          ${dutyTimeField(emp, 'end')}
+        </div>
+        <div class="field duty-field full">
+          <label class="icon-label"><span class="ic">⏱️</span> Duty Hour (hr) <span class="auto-tag">auto</span></label>
+          <input type="number" inputmode="decimal" step="0.5" value="${emp.dutyHour}" data-empfield="dutyHour" placeholder="e.g. 7 or 9" />
+        </div>
       </div>
+      <div class="note" style="margin-top:10px;">Late is auto-calculated as (Check In − Duty Start Time). Extra Time is auto-calculated as (Check Out − Check In) − Duty Hour.</div>
     </div>
-    <div class="note" style="margin-top:-4px;">Per Hour Rate is auto-calculated from Basic Salary ÷ (number of days in the selected period × Duty Hour). Edit it manually if you need a different rate.</div>
 
-    <div class="section-lbl">Daily Attendance</div>
-    <div class="day-table-wrap">
-      <div class="day-scroll">
-        <table class="daygrid">
-          <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Status</th><th>Late</th><th>Extra Time</th><th>Sub Total</th></tr></thead>
-          <tbody id="dayBody">${daysRows}</tbody>
-        </table>
+    <div class="section-card">
+      <div class="section-lbl"><span class="dot"></span>Salary &amp; Rates</div>
+      <div class="config-grid">
+        <div class="field"><label>Basic Salary</label><input type="number" inputmode="decimal" value="${emp.basicSalary}" data-empfield="basicSalary" placeholder="0" /></div>
+        <div class="field"><label>Per Hour Rate</label><input type="number" inputmode="decimal" value="${emp.perHourRate}" data-empfield="perHourRate" placeholder="Auto" /></div>
+        <div class="field holiday-field"><label class="icon-label"><span class="ic">📅</span> Govt Holiday Days</label><input type="number" inputmode="decimal" value="${emp.govtHolidayDays}" data-empfield="govtHolidayDays" placeholder="0" /></div>
+        <div class="field holiday-field">
+          <label class="icon-label"><span class="ic">🏛️</span> Govt Holiday Amount</label>
+          <input type="number" inputmode="decimal" value="${emp.govtHolidayAmount}" data-empfield="govtHolidayAmount" placeholder="0" />
+        </div>
       </div>
+      <div class="note" style="margin-top:10px;">Per Hour Rate is auto-calculated from Basic Salary ÷ (number of days in the selected period × Duty Hour). Edit it manually if you need a different rate.</div>
     </div>
-    <div class="note" style="margin-top:-8px;">Extra Time is calculated automatically: (Check Out − Check In) − Duty Hour. Late minutes are then deducted to give the Sub Total.</div>
 
-    <div class="section-lbl">Monthly Summary</div>
-    <div class="calc-strip">
-      <div class="calc-item"><span class="k">Total Late</span><span class="v deduct" id="m_totalLate">${c.totalLate} min</span></div>
-      <div class="calc-item"><span class="k">Total Extra Minute</span><span class="v" id="m_totalNet">${c.totalNet} min</span></div>
-      <div class="calc-item"><span class="k">Extra Hour</span><span class="v bonus" id="m_hour">${c.extraHour.toFixed(2)} h</span></div>
-      <div class="calc-item"><span class="k">Extra Amount</span><span class="v amber" id="m_amount">${money(c.amount)}</span></div>
+    </div>
+    <div class="detail-right">
+
+    <div class="section-card">
+      <div class="section-lbl"><span class="dot"></span>Daily Attendance</div>
+      <div class="attendance-summary">
+        <div class="stat-pill present"><span class="k"><span class="sw"></span>Present</span><span class="v" id="statPresent">${presentCount}</span></div>
+        <div class="stat-pill absent"><span class="k"><span class="sw"></span>Absent</span><span class="v" id="statAbsent">${absentCount}</span></div>
+        <div class="stat-pill off"><span class="k"><span class="sw"></span>Day Off</span><span class="v" id="statOff">${offCount}</span></div>
+        <div class="stat-pill overtime"><span class="k"><span class="sw"></span>Overtime</span><span class="v" id="statOvertime">${c.extraHour.toFixed(1)}h</span></div>
+      </div>
+      <div class="day-table-wrap">
+        <div class="day-scroll">
+          <table class="daygrid">
+            <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Status</th><th>Late</th><th>Extra Time</th><th>Sub Total</th></tr></thead>
+            <tbody id="dayBody">${daysRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="note" style="margin-top:12px;">Extra Time is calculated automatically: (Check Out − Check In) − Duty Hour. Late minutes are then deducted to give the Sub Total.</div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-lbl"><span class="dot"></span>Monthly Summary</div>
+      <div class="calc-strip">
+        <div class="calc-item"><span class="k">Total Late</span><span class="v deduct" id="m_totalLate">${c.totalLate} min</span></div>
+        <div class="calc-item"><span class="k">Total Extra Minute</span><span class="v" id="m_totalNet">${c.totalNet} min</span></div>
+        <div class="calc-item"><span class="k">Extra Hour</span><span class="v bonus" id="m_hour">${c.extraHour.toFixed(2)} h</span></div>
+        <div class="calc-item"><span class="k">Extra Amount</span><span class="v amber" id="m_amount">${money(c.amount)}</span></div>
+      </div>
     </div>
 
     <div class="grand">
@@ -754,8 +910,14 @@ function renderDetail(emp){
       <div class="grand-final"><span class="k">Grand Total</span><span class="v" id="m_grand">${money(c.grand)}</span></div>
     </div>
 
-    <button class="btn-print" id="btnPrint">⬇ Download PDF</button>
+    <div class="print-btn-row">
+      <button class="btn-print" id="btnPrint">⬇ A4 PDF</button>
+      <button class="btn-print label-btn" id="btnLabelPrint">🏷️ 3×5in Label</button>
+    </div>
     <div class="pdf-status" id="pdfStatus"></div>
+
+    </div>
+    </div>
   `;
 
   wrap.querySelectorAll('[data-empfield]').forEach(el => {
@@ -778,6 +940,16 @@ function renderDetail(emp){
     el.addEventListener('change', () => updateDayField(emp.id, d, field, el.value));
   });
   document.getElementById('btnPrint').addEventListener('click', () => downloadPDF(emp));
+  document.getElementById('btnLabelPrint').addEventListener('click', () => downloadLabelPDF(emp));
+  const clearNameBtn = document.getElementById('clearNameBtn');
+  if(clearNameBtn){
+    clearNameBtn.addEventListener('click', () => {
+      const inp = document.getElementById('empNameInput');
+      inp.value = '';
+      updateEmpField(emp.id, 'name', '');
+      inp.focus();
+    });
+  }
 
   if(!unlocked){
     wrap.querySelectorAll('input, select').forEach(el => el.disabled = true);
@@ -825,22 +997,24 @@ function downloadPDF(emp){
       head: [['Date','In','Out','Status','Late(m)','Extra(m)','Sub Total']],
       body: rows,
       startY: 61,
-      styles: { fontSize: 7.5, cellPadding: 1.6 },
-      headStyles: { fillColor: [19,30,40], textColor: [237,234,224] },
-      alternateRowStyles: { fillColor: [246,244,238] }
+      styles: { fontSize: 7, cellPadding: 1.1 },
+      headStyles: { fillColor: [15,56,38], textColor: [237,247,240] },
+      alternateRowStyles: { fillColor: [219,242,225] }
     });
 
     let y = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(10.5);
     doc.text(`Basic Salary: ${moneyPdf(c.basic)}`, 14, y);
     doc.text(`Extra Amount: ${moneyPdf(c.amount)}  (Extra Hour: ${c.extraHour.toFixed(2)} h)`, 14, y+7);
-    doc.text(`Government Holiday Amount: ${moneyPdf(c.holiday)}`, 14, y+14);
-    doc.setDrawColor(169,129,46);
+    doc.text(`Government Holiday Amount: ${moneyPdf(c.holiday)}${emp.govtHolidayDays ? ' (' + emp.govtHolidayDays + ' days)' : ''}`, 14, y+14);
+    doc.setDrawColor(201,124,61);
     doc.setLineWidth(0.6);
     doc.line(14, y+19, 100, y+19);
     doc.setFont('helvetica','bold');
     doc.setFontSize(13);
+    doc.setTextColor(15,56,38);
     doc.text(`Grand Total: ${moneyPdf(c.grand)}`, 14, y+27);
+    doc.setTextColor(0,0,0);
 
     const fname = (emp.name || 'employee').replace(/[^a-zA-Z0-9]+/g,'_') + '_payslip.pdf';
     doc.save(fname);
@@ -849,6 +1023,61 @@ function downloadPDF(emp){
   }catch(err){
     console.error(err);
     statusEl.textContent = 'Could not generate PDF — please try again.';
+  }
+}
+
+function downloadLabelPDF(emp){
+  const statusEl = document.getElementById('pdfStatus');
+  try{
+    if(!window.jspdf){
+      statusEl.textContent = 'PDF library still loading — try again in a moment.';
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'in', format:[3,5] });
+    const c = monthlyCalc(emp);
+
+    doc.setFillColor(15,56,38);
+    doc.rect(0, 0, 3, 0.5, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+    doc.text('PKG Salary Slip', 0.15, 0.22);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+    doc.text(periodLabel(), 0.15, 0.4);
+
+    doc.setTextColor(20,40,30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+    doc.text(emp.name || 'Unnamed employee', 0.15, 0.72);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7);
+    doc.text(`${emp.designation || '-'}  |  ID: ${emp.empId || '-'}`, 0.15, 0.86);
+
+    doc.setDrawColor(46,139,87); doc.setLineWidth(0.015);
+    doc.line(0.15, 0.98, 2.85, 0.98);
+
+    doc.setFontSize(7.5);
+    doc.text(`Basic Salary`, 0.15, 1.18); doc.text(moneyPdf(c.basic), 2.85, 1.18, {align:'right'});
+    doc.text(`Extra Amount`, 0.15, 1.34); doc.text(moneyPdf(c.amount), 2.85, 1.34, {align:'right'});
+    doc.text(`Govt Holiday`, 0.15, 1.50); doc.text(moneyPdf(c.holiday), 2.85, 1.50, {align:'right'});
+
+    doc.setFillColor(219,242,225);
+    doc.rect(0.1, 1.62, 2.8, 0.42, 'F');
+    doc.setTextColor(15,56,38);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('Grand Total', 0.2, 1.88);
+    doc.text(moneyPdf(c.grand), 2.8, 1.88, {align:'right'});
+
+    doc.setTextColor(120,140,130);
+    doc.setFont('helvetica','normal'); doc.setFontSize(5.5);
+    doc.text('Zebra ZD230 / ZT231 — 3 x 5 in', 0.15, 4.85);
+    doc.text('Generated: ' + new Date().toLocaleDateString(), 0.15, 4.95);
+
+    const fname = (emp.name || 'employee').replace(/[^a-zA-Z0-9]+/g,'_') + '_label.pdf';
+    doc.save(fname);
+    statusEl.textContent = 'Label PDF downloaded ✓';
+    setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = 'Could not generate label PDF — please try again.';
   }
 }
 
@@ -944,7 +1173,10 @@ function openPrintModal(){
       <button class="modal-btn primary" id="printCsvBtn">⬇ CSV / Excel</button>
     </div>
     <div class="modal-btn-row">
-      <button class="modal-btn primary" id="printPdfBtn" style="width:100%;">🖨️ Print PDF</button>
+      <button class="modal-btn primary" id="printPdfBtn" style="width:100%;">🖨️ Print PDF (A4)</button>
+    </div>
+    <div class="modal-btn-row">
+      <button class="modal-btn primary" id="printLabelBtn" style="width:100%;background:var(--forest);">🏷️ Print Label (3×5in — Zebra)</button>
     </div>
   `;
   overlay.style.display = 'flex';
@@ -963,6 +1195,59 @@ function openPrintModal(){
     if(sel.length===0) return;
     exportCSV(sel);
   });
+  document.getElementById('printLabelBtn').addEventListener('click', () => {
+    const sel = getSelected();
+    if(sel.length===0) return;
+    combinedLabelPDF(sel);
+  });
+}
+
+function combinedLabelPDF(selectedIds){
+  if(!window.jspdf){ alert('PDF library still loading — try again in a moment.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'in', format:[3,5] });
+  const selected = employees.filter(e => selectedIds.includes(e.id));
+
+  selected.forEach((emp, idx) => {
+    if(idx>0) doc.addPage([3,5], 'portrait');
+    const c = monthlyCalc(emp);
+
+    doc.setFillColor(15,56,38);
+    doc.rect(0, 0, 3, 0.5, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+    doc.text('PKG Salary Slip', 0.15, 0.22);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+    doc.text(periodLabel(), 0.15, 0.4);
+
+    doc.setTextColor(20,40,30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+    doc.text(emp.name || 'Unnamed employee', 0.15, 0.72);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7);
+    doc.text(`${emp.designation || '-'}  |  ID: ${emp.empId || '-'}`, 0.15, 0.86);
+
+    doc.setDrawColor(46,139,87); doc.setLineWidth(0.015);
+    doc.line(0.15, 0.98, 2.85, 0.98);
+
+    doc.setFontSize(7.5);
+    doc.text(`Basic Salary`, 0.15, 1.18); doc.text(moneyPdf(c.basic), 2.85, 1.18, {align:'right'});
+    doc.text(`Extra Amount`, 0.15, 1.34); doc.text(moneyPdf(c.amount), 2.85, 1.34, {align:'right'});
+    doc.text(`Govt Holiday`, 0.15, 1.50); doc.text(moneyPdf(c.holiday), 2.85, 1.50, {align:'right'});
+
+    doc.setFillColor(219,242,225);
+    doc.rect(0.1, 1.62, 2.8, 0.42, 'F');
+    doc.setTextColor(15,56,38);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('Grand Total', 0.2, 1.88);
+    doc.text(moneyPdf(c.grand), 2.8, 1.88, {align:'right'});
+
+    doc.setTextColor(120,140,130);
+    doc.setFont('helvetica','normal'); doc.setFontSize(5.5);
+    doc.text('Zebra ZD230 / ZT231 — 3 x 5 in', 0.15, 4.85);
+  });
+
+  doc.save('salary_labels_' + toISO(new Date()) + '.pdf');
+  document.getElementById('printOverlay').style.display = 'none';
 }
 
 function combinedPrintPDF(selectedIds){
@@ -989,11 +1274,11 @@ function combinedPrintPDF(selectedIds){
     head: [['SL','Name','Designation','ID','Basic','Extra','Holiday','Grand Total']],
     body: rows,
     startY: 34,
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [19,30,40], textColor: [237,234,224] },
-    alternateRowStyles: { fillColor: [246,244,238] },
+    styles: { fontSize: 7.5, cellPadding: 1.4 },
+    headStyles: { fillColor: [15,56,38], textColor: [237,247,240] },
+    alternateRowStyles: { fillColor: [219,242,225] },
     foot: [['', '', '', '', '', '', 'Total', moneyPdf(grandSum)]],
-    footStyles: { fillColor: [169,129,46], textColor: [27,20,0], fontStyle: 'bold' }
+    footStyles: { fillColor: [201,124,61], textColor: [255,255,255], fontStyle: 'bold' }
   });
 
   doc.save('salary_summary_' + toISO(new Date()) + '.pdf');
@@ -1003,15 +1288,15 @@ function combinedPrintPDF(selectedIds){
 function exportCSV(selectedIds){
   const selected = employees.filter(e => selectedIds.includes(e.id));
   const esc = v => '"' + String(v).replace(/"/g,'""') + '"';
-  let csv = 'SL,Name,Designation,Employee ID,Basic Salary,Extra Amount,Govt Holiday,Grand Total\n';
+  let csv = 'SL,Name,Designation,Employee ID,Basic Salary,Extra Amount,Govt Holiday Days,Govt Holiday Amount,Grand Total\n';
   let grandSum = 0;
   selected.forEach((emp, idx) => {
     const c = monthlyCalc(emp);
     grandSum += c.grand;
     csv += [idx+1, esc(emp.name||'Unnamed employee'), esc(emp.designation||''), esc(emp.empId||''),
-      c.basic, c.amount.toFixed(2), c.holiday, c.grand.toFixed(2)].join(',') + '\n';
+      c.basic, c.amount.toFixed(2), esc(emp.govtHolidayDays||'0'), c.holiday, c.grand.toFixed(2)].join(',') + '\n';
   });
-  csv += `,,,,,,Total,${grandSum.toFixed(2)}\n`;
+  csv += `,,,,,,,Total,${grandSum.toFixed(2)}\n`;
   const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
