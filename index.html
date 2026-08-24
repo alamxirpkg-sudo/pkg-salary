@@ -563,12 +563,12 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
 }
 .duty-manual-edit .fld{ display:flex; flex-direction:column; gap:4px; }
 .duty-manual-edit label{ font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:#93C5FD; font-weight:800; }
-.duty-manual-edit input[type=date]{
+.duty-manual-edit input{
   border:1px solid rgba(148,163,184,.28); background:#0F1B2E; color:#F1F5F9;
   border-radius:9px; padding:8px 9px; font-family:'JetBrains Mono',monospace; font-size:12px;
   width:100%; color-scheme:dark;
 }
-.duty-manual-edit input[type=date]:focus{ outline:none; border-color:#3B82F6; }
+.duty-manual-edit input:focus{ outline:none; border-color:#3B82F6; }
 .duty-manual-apply-row{ display:flex; justify-content:flex-end; margin:-5px 0 12px; }
 .duty-manual-apply-row button{
   border:0; background:#2563EB; color:#fff; font-weight:800; font-size:11px;
@@ -598,8 +598,8 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
   </div>
   <div id="periodCalendarControl" class="duty-period-control"><button id="periodCalendarBtn" type="button" class="duty-period-card"><span class="duty-cal-icon">📅</span><span class="duty-period-text"><span class="duty-period-title">Current Period</span><span id="periodDisplay" class="duty-period-display">26 Jul – 25 Aug</span></span><span class="duty-period-arrow">›</span></button><div id="periodCalendarPopover" class="duty-calendar-popover">
     <div class="duty-manual-edit">
-      <div class="fld"><label>Start Date</label><input type="date" id="manualStartInput"></div>
-      <div class="fld"><label>End Date</label><input type="date" id="manualEndInput"></div>
+      <div class="fld"><label>Start Date</label><input type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" id="manualStartInput"></div>
+      <div class="fld"><label>End Date</label><input type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" id="manualEndInput"></div>
     </div>
     <div class="duty-manual-apply-row"><button type="button" id="manualApplyBtn">Set Dates</button></div>
     <div class="duty-quick-months" id="dutyQuickMonths"></div>
@@ -1182,8 +1182,6 @@ function renderDetail(emp){
 
     <div class="detail-grid">
     <div class="detail-left">
-
-    <div class="snapshot-card"><div class="snapshot-head">Employee Snapshot</div><div class="snapshot-line"><b>👤 ${escapeHtml(emp.name||'Unnamed')}</b><span>${escapeHtml(emp.designation||'-')}</span></div><div class="snapshot-line"><span>ID</span><b>${escapeHtml(emp.empId||'-')}</b></div><div class="snapshot-line"><span>Duty</span><b>${escapeHtml(emp.dutyStart||'-')} ${emp.dutyStartPeriod||''} → ${escapeHtml(emp.dutyEnd||'-')} ${emp.dutyEndPeriod||''}</b></div><div class="snapshot-line"><span>Hourly</span><b>${money(emp.perHourRate)}</b></div><div class="snapshot-line"><span>Basic</span><b>${money(emp.basicSalary)}</b></div></div>
 
     <div class="section-card">
       <div class="section-lbl"><span class="dot"></span>Employee Details</div>
@@ -2090,13 +2088,29 @@ function exportCSV(selectedIds){
     p.classList.remove('open');
   };
 
+  const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+  function autoFormatIsoInput(el){
+    el.addEventListener('input', () => {
+      let v = el.value.replace(/[^\d]/g,'');
+      if(v.length>4) v = v.slice(0,4)+'-'+v.slice(4);
+      if(v.length>7) v = v.slice(0,7)+'-'+v.slice(7);
+      v = v.slice(0,10);
+      el.value = v;
+    });
+  }
+  if(manualStart) autoFormatIsoInput(manualStart);
+  if(manualEnd) autoFormatIsoInput(manualEnd);
+
   if(manualApply){
     manualApply.onclick = async e => {
       e.preventDefault();
       e.stopPropagation();
-      const s = manualStart.value;
-      const en = manualEnd.value;
-      if(!s || !en || s > en) return;
+      const s = manualStart.value.trim();
+      const en = manualEnd.value.trim();
+      if(!ISO_RE.test(s) || !ISO_RE.test(en) || isNaN(dt(s)) || isNaN(dt(en)) || s > en){
+        selectionText.textContent = 'Enter valid dates as YYYY-MM-DD';
+        return;
+      }
       startDate = dt(s);
       endDate = dt(en);
       selectingNewRange = false;
