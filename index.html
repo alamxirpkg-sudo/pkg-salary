@@ -554,6 +554,34 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
   .ampm-menu{width:54px}
 }
 </style>
+
+<style>
+/* Manual period edit fields inside the calendar popover */
+.duty-manual-edit{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  margin-bottom:13px; padding-bottom:13px; border-bottom:1px solid rgba(148,163,184,.16);
+}
+.duty-manual-edit .fld{ display:flex; flex-direction:column; gap:4px; }
+.duty-manual-edit label{ font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:#93C5FD; font-weight:800; }
+.duty-manual-edit input[type=date]{
+  border:1px solid rgba(148,163,184,.28); background:#0F1B2E; color:#F1F5F9;
+  border-radius:9px; padding:8px 9px; font-family:'JetBrains Mono',monospace; font-size:12px;
+  width:100%; color-scheme:dark;
+}
+.duty-manual-edit input[type=date]:focus{ outline:none; border-color:#3B82F6; }
+.duty-manual-apply-row{ display:flex; justify-content:flex-end; margin:-5px 0 12px; }
+.duty-manual-apply-row button{
+  border:0; background:#2563EB; color:#fff; font-weight:800; font-size:11px;
+  padding:7px 12px; border-radius:8px; cursor:pointer;
+}
+.duty-manual-apply-row button:hover{ background:#1D4ED8; }
+.duty-quick-months{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:13px; }
+.duty-quick-months button{
+  border:1px solid rgba(148,163,184,.25); background:#182741; color:#CBD5E1;
+  font-size:10.5px; font-weight:700; padding:6px 9px; border-radius:999px; cursor:pointer;
+}
+.duty-quick-months button:hover{ background:#22314a; color:#fff; }
+</style>
 </head>
 <body>
 <div class="topbar">
@@ -568,7 +596,14 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
       </div>
     </div>
   </div>
-  <div id="periodCalendarControl" class="duty-period-control"><button id="periodCalendarBtn" type="button" class="duty-period-card"><span class="duty-cal-icon">📅</span><span class="duty-period-text"><span class="duty-period-title">Current Period</span><span id="periodDisplay" class="duty-period-display">26 Jul – 25 Aug</span></span><span class="duty-period-arrow">›</span></button><div id="periodCalendarPopover" class="duty-calendar-popover"><div class="duty-calendar-head"><button type="button" id="calPrevMonth">‹</button><div><strong id="calMonthTitle"></strong><small>Select start &amp; end date</small></div><button type="button" id="calNextMonth">›</button></div><div class="duty-calendar-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="dutyCalendarGrid" class="duty-calendar-grid"></div><div class="duty-calendar-footer"><span id="calSelectionText">Select start date</span><button type="button" id="calApplyBtn" disabled>Apply</button></div></div><div id="periodEditor" style="display:none"><input id="periodStart" type="date"><input id="periodEnd" type="date"></div></div>
+  <div id="periodCalendarControl" class="duty-period-control"><button id="periodCalendarBtn" type="button" class="duty-period-card"><span class="duty-cal-icon">📅</span><span class="duty-period-text"><span class="duty-period-title">Current Period</span><span id="periodDisplay" class="duty-period-display">26 Jul – 25 Aug</span></span><span class="duty-period-arrow">›</span></button><div id="periodCalendarPopover" class="duty-calendar-popover">
+    <div class="duty-manual-edit">
+      <div class="fld"><label>Start Date</label><input type="date" id="manualStartInput"></div>
+      <div class="fld"><label>End Date</label><input type="date" id="manualEndInput"></div>
+    </div>
+    <div class="duty-manual-apply-row"><button type="button" id="manualApplyBtn">Set Dates</button></div>
+    <div class="duty-quick-months" id="dutyQuickMonths"></div>
+    <div class="duty-calendar-head"><button type="button" id="calPrevMonth">‹</button><div><strong id="calMonthTitle"></strong><small>Or pick from calendar</small></div><button type="button" id="calNextMonth">›</button></div><div class="duty-calendar-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="dutyCalendarGrid" class="duty-calendar-grid"></div><div class="duty-calendar-footer"><span id="calSelectionText">Select start date</span><button type="button" id="calApplyBtn" disabled>Apply</button></div></div><div id="periodEditor" style="display:none"><input id="periodStart" type="date"><input id="periodEnd" type="date"></div></div>
   <div class="period-row">
     <p class="period-readout" id="periodReadout"></p>
     <div class="quick-actions">
@@ -1890,6 +1925,10 @@ function exportCSV(selectedIds){
   const apply = document.getElementById('calApplyBtn');
   const monthTitle = document.getElementById('calMonthTitle');
   const selectionText = document.getElementById('calSelectionText');
+  const manualStart = document.getElementById('manualStartInput');
+  const manualEnd = document.getElementById('manualEndInput');
+  const manualApply = document.getElementById('manualApplyBtn');
+  const quickMonthsWrap = document.getElementById('dutyQuickMonths');
 
   const DEFAULT_START = '2026-07-26';
   const DEFAULT_END = '2026-08-25';
@@ -1910,6 +1949,29 @@ function exportCSV(selectedIds){
   const dt = x => new Date(x+'T00:00:00');
   const same = (x,y) => !!x && !!y && iso(x)===iso(y);
   const fmt = d => d ? d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+  async function applyPeriod(newStart, newEnd){
+    period = {start:newStart, end:newEnd};
+
+    const startInput=document.getElementById('periodStartInput');
+    const endInput=document.getElementById('periodEndInput');
+    if(startInput) startInput.value=newStart;
+    if(endInput) endInput.value=newEnd;
+
+    const display=document.getElementById('periodDisplay');
+    if(display) display.textContent = formatDateLabel(newStart) + ' – ' + formatDateLabel(newEnd);
+
+    const readout=document.getElementById('periodReadout');
+    if(readout) readout.textContent = 'Current period: ' + periodLabel();
+
+    try{
+      await savePeriod();
+    }catch(err){
+      console.error('period save failed',err);
+    }
+
+    render();
+  }
 
   function renderCalendar(){
     const y=cursor.getFullYear(), m=cursor.getMonth();
@@ -1962,6 +2024,32 @@ function exportCSV(selectedIds){
         ? `${fmt(startDate)} — Now select end date`
         : 'Select start date';
     apply.disabled=!(startDate && endDate);
+    if(manualStart) manualStart.value = startDate ? iso(startDate) : '';
+    if(manualEnd) manualEnd.value = endDate ? iso(endDate) : '';
+  }
+
+  function renderQuickMonths(){
+    if(!quickMonthsWrap) return;
+    quickMonthsWrap.innerHTML = '';
+    const base = new Date();
+    // Offer the 3 previous, current, and 3 upcoming payroll months (26th-to-25th cycles)
+    for(let offset=-3; offset<=3; offset++){
+      const end = new Date(base.getFullYear(), base.getMonth()+offset, 25);
+      const start = new Date(base.getFullYear(), base.getMonth()+offset-1, 26);
+      const label = end.toLocaleString('en-US',{month:'short',year:'2-digit'});
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = label;
+      btn.onclick = () => {
+        startDate = start;
+        endDate = end;
+        selectingNewRange = false;
+        cursor = new Date(end.getFullYear(), end.getMonth(), 1);
+        renderCalendar();
+        updateSelectionText();
+      };
+      quickMonthsWrap.appendChild(btn);
+    }
   }
 
   function openCalendar(){
@@ -1971,6 +2059,7 @@ function exportCSV(selectedIds){
     endDate = period.end ? dt(period.end) : dt(DEFAULT_END);
     selectingNewRange = true;
     cursor = new Date((period.end || DEFAULT_END).slice(0,7)+'-01T00:00:00');
+    renderQuickMonths();
     renderCalendar();
     updateSelectionText();
   }
@@ -1997,33 +2086,26 @@ function exportCSV(selectedIds){
     e.preventDefault();
     e.stopPropagation();
     if(!startDate || !endDate) return;
-
-    const newStart = iso(startDate);
-    const newEnd = iso(endDate);
-
-    // Apply the new period immediately in the UI.
-    period = {start:newStart, end:newEnd};
-
-    const startInput=document.getElementById('periodStartInput');
-    const endInput=document.getElementById('periodEndInput');
-    if(startInput) startInput.value=newStart;
-    if(endInput) endInput.value=newEnd;
-
-    const display=document.getElementById('periodDisplay');
-    if(display) display.textContent = formatDateLabel(newStart) + ' – ' + formatDateLabel(newEnd);
-
-    const readout=document.getElementById('periodReadout');
-    if(readout) readout.textContent = 'Current period: ' + periodLabel();
-
-    try{
-      await savePeriod();
-    }catch(err){
-      console.error('period save failed',err);
-    }
-
-    render();
+    await applyPeriod(iso(startDate), iso(endDate));
     p.classList.remove('open');
   };
+
+  if(manualApply){
+    manualApply.onclick = async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const s = manualStart.value;
+      const en = manualEnd.value;
+      if(!s || !en || s > en) return;
+      startDate = dt(s);
+      endDate = dt(en);
+      selectingNewRange = false;
+      cursor = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+      await applyPeriod(s, en);
+      renderCalendar();
+      updateSelectionText();
+    };
+  }
 
   document.addEventListener('click',e=>{
     if(control && !control.contains(e.target)) p.classList.remove('open');
