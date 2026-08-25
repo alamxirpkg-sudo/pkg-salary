@@ -463,6 +463,37 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
 </style>
 
 <style>
+/* Paid leave salary card */
+.leave-pay-card{
+  background:linear-gradient(135deg,#F8FAFF 0%,#FDFBFF 100%);
+  border:1px solid #DDE5F2;border-radius:14px;padding:15px 16px;margin:12px 0 16px;
+  box-shadow:var(--shadow-sm);
+}
+.leave-pay-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.leave-pay-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;color:#172033}
+.leave-pay-sub{font-size:10px;color:#7B879A;margin-top:3px}
+.leave-pay-auto{font-size:8px;font-weight:800;letter-spacing:.08em;color:#15803D;background:#DCFCE7;border:1px solid #BBF7D0;padding:4px 7px;border-radius:999px}
+.leave-pay-grid{display:flex;flex-direction:column;gap:7px}
+.leave-pay-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:10px 11px;border:1px solid #E5EAF2;border-radius:10px;background:#fff}
+.leave-pay-row.inactive{opacity:.62}
+.leave-pay-row.active.casual{border-color:#BFDBFE;background:#F8FBFF}
+.leave-pay-row.active.sick{border-color:#FBCFE8;background:#FFF9FC}
+.leave-pay-name{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#334155}
+.leave-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.casual-dot{background:#3B82F6}.sick-dot{background:#EC4899}
+.leave-pay-days{font-family:'JetBrains Mono',monospace;font-size:10px;color:#64748B;white-space:nowrap}
+.leave-pay-amount{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:#1D4ED8;min-width:78px;text-align:right}
+.leave-pay-row.active.sick .leave-pay-amount{color:#BE185D}
+.leave-pay-total{display:flex;justify-content:space-between;align-items:center;padding:9px 11px 2px;border-top:1px solid #E7EBF2;margin-top:2px;font-size:11px;color:#64748B}
+.leave-pay-total b{font-family:'JetBrains Mono',monospace;font-size:14px;color:#0F766E}
+@media(max-width:520px){
+  .leave-pay-row{grid-template-columns:1fr auto;gap:4px 10px}
+  .leave-pay-days{grid-column:1/2}
+  .leave-pay-amount{grid-column:2/3;grid-row:1/3}
+}
+</style>
+
+<style>
 /* Final mobile UI polish */
 .brand-seal{color:#22C55E!important;border-color:#22C55E!important}
 .topbar{position:relative}
@@ -967,8 +998,6 @@ function updateFooterUI(emp){
   set('m_otherExtraMinutes', c.otherExtraMinutes+' min');
   set('m_otherExtraAmount', money(c.otherExtraAmount));
   set('m_otherExtraAmountGrand', money(c.otherExtraAmount));
-  set('m_casualLeave', c.casualLeaveDays+' day'+(c.casualLeaveDays===1?'':'s'));
-  set('m_sickLeave', c.sickLeaveDays+' day'+(c.sickLeaveDays===1?'':'s'));
   const otherExtraReadout = document.getElementById('otherExtraReadout_'+emp.id);
   if(otherExtraReadout) otherExtraReadout.value = money(c.otherExtraAmount);
   set('m_basic', money(c.basic));
@@ -976,6 +1005,10 @@ function updateFooterUI(emp){
   set('m_dayOff', money(c.dayOffAmount));
   const dayOffReadoutEl = document.getElementById('dayOffReadout_'+emp.id);
   if(dayOffReadoutEl) dayOffReadoutEl.value = `${c.dayOffCount} day${c.dayOffCount===1?'':'s'}  =  ${money(c.dayOffAmount)}`;
+  const dayOffDutyCountEl = document.getElementById('dayOffDutyCount_'+emp.id);
+  const dayOffDutyAmountEl = document.getElementById('dayOffDutyAmount_'+emp.id);
+  if(dayOffDutyCountEl) dayOffDutyCountEl.value = `${c.dayOffCount} day${c.dayOffCount===1?'':'s'}`;
+  if(dayOffDutyAmountEl) dayOffDutyAmountEl.value = money(c.dayOffAmount);
   const dayOffLineLbl = document.getElementById('m_dayOffLbl');
   if(dayOffLineLbl) dayOffLineLbl.textContent = `+ Extra Day (${c.dayOffCount} day${c.dayOffCount===1?'':'s'})`;
   set('m_absentDays', c.absentDays);
@@ -1253,12 +1286,12 @@ function renderDetail(emp){
           </select>
         </div>
         <div class="field dayoff-duty-field">
-          <label class="icon-label"><span class="ic">⚡</span> Extra Day (Duty on Off) <span class="auto-tag">auto</span></label>
+          <label class="icon-label"><span class="ic">⚡</span> Day Off Duty <span class="auto-tag">auto</span></label>
           <input type="text" id="dayOffReadout_${emp.id}" value="${c.dayOffCount} day${c.dayOffCount===1?'':'s'}  =  ${money(c.dayOffAmount)}" readonly disabled />
         </div>
       </div>
       <div class="note" style="margin-top:10px;">Per Hour Rate and Govt Holiday Amount are auto-calculated from Basic Salary ÷ (days in the selected period). 1 Govt Holiday Day = 1 day's salary added, 2 days = 2 days' salary, and so on. Edit any auto field manually if you need a different value.</div>
-      <div class="note" style="margin-top:6px;">🌴 <b>Weekly Day Off:</b> select the employee's fixed weekly off day (e.g. Friday). On a normal off day nothing changes. ⚡ <b>Extra Day:</b> if the employee actually reports for <b>Duty</b> (marked Present) on that Day Off date, it's auto-counted as an Extra Day and one day's salary is auto-added per such day. ⛔ If "Day Off" status is marked on any date <u>outside</u> the designated weekly off day, it's treated as Absent and one day's salary is auto-deducted.</div>
+      <div class="note" style="margin-top:6px;">📝 <b>Casual/Sick Leave:</b> leave status has no salary addition and no salary deduction. 🌴 <b>Weekly Day Off:</b> select the employee's fixed weekly off day (e.g. Friday). On a normal off day nothing changes. ⚡ <b>Extra Day:</b> if the employee actually reports for <b>Duty</b> (marked Present) on that Day Off date, it's auto-counted as an Extra Day and one day's salary is auto-added per such day. ⛔ If "Day Off" status is marked on any date <u>outside</u> the designated weekly off day, it's treated as Absent and one day's salary is auto-deducted.</div>
     </div>
 
     </div>
@@ -1287,7 +1320,22 @@ function renderDetail(emp){
       <div class="note" style="margin-top:12px;">Extra Time is calculated automatically: (Check Out − Check In) − Duty Hour. Late minutes are then deducted to give the Sub Total.</div>
     </div>
 
-    <div class="section-card" style="margin-top:-4px;">
+    <div class="section-card dayoff-duty-summary">
+      <div class="section-lbl"><span class="dot"></span>Day Off Duty</div>
+      <div class="name-edit-row">
+        <div class="field">
+          <label>Day Off Duty Count <span class="auto-tag">auto</span></label>
+          <input type="text" id="dayOffDutyCount_${emp.id}" value="${c.dayOffCount} day${c.dayOffCount===1?'':'s'}" readonly disabled />
+        </div>
+        <div class="field">
+          <label>Day Off Duty Amount <span class="auto-tag">auto</span></label>
+          <input type="text" id="dayOffDutyAmount_${emp.id}" value="${money(c.dayOffAmount)}" readonly disabled />
+        </div>
+      </div>
+      <div class="note" style="margin-top:4px;">If the employee is marked <b>Present</b> on the selected weekly Day Off, each such duty day automatically adds one day's salary. 2 Day Off duties = 2 days' salary.</div>
+    </div>
+
+    <div class="section-card" style="margin-top:12px;">
       <div class="section-lbl"><span class="dot"></span>Month-End Other Extra Time</div>
       <div class="name-edit-row">
         <div class="field">
@@ -1311,8 +1359,6 @@ function renderDetail(emp){
         <div class="calc-item"><span class="k">Extra Amount</span><span class="v amber" id="m_amount">${money(c.amount)}</span></div>
         <div class="calc-item"><span class="k">Other Extra Minutes</span><span class="v bonus" id="m_otherExtraMinutes">${c.otherExtraMinutes} min</span></div>
         <div class="calc-item"><span class="k">Other Extra Amount</span><span class="v amber" id="m_otherExtraAmount">${money(c.otherExtraAmount)}</span></div>
-        <div class="calc-item"><span class="k">Casual Leave</span><span class="v bonus" id="m_casualLeave">${c.casualLeaveDays} day${c.casualLeaveDays===1?'':'s'}</span></div>
-        <div class="calc-item"><span class="k">Sick Leave</span><span class="v bonus" id="m_sickLeave">${c.sickLeaveDays} day${c.sickLeaveDays===1?'':'s'}</span></div>
         <div class="calc-item"><span class="k">Absent Days</span><span class="v deduct" id="m_absentDays">${c.absentDays}</span></div>
         <div class="calc-item"><span class="k">Absent Deduction</span><span class="v deduct" id="m_absentDeduction">${money(c.absentDeduction)}</span></div>
       </div>
