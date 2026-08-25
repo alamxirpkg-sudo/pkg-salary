@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 <title>PKG Salary Calculation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -68,6 +68,27 @@
   }
   .toprow{ display:flex; align-items:center; justify-content:space-between; gap:8px; position:relative; z-index:1; }
   .toprow-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .menu-control{ position:relative; flex-shrink:0; z-index:10000; }
+  .menu-btn{
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16);
+    color:#F1F5F9; width:38px; height:38px; border-radius:10px; font-size:17px; cursor:pointer;
+    transition:background .15s ease;
+  }
+  .menu-btn:hover{ background:rgba(255,255,255,0.16); }
+  .menu-dropdown{
+    display:none; position:absolute; right:0; top:46px; min-width:198px;
+    background:#FFFFFF; border:1px solid var(--line); border-radius:12px;
+    box-shadow:0 18px 40px rgba(15,23,42,0.22); padding:6px; z-index:10001;
+  }
+  .menu-dropdown.open{ display:block; }
+  .menu-item{
+    display:flex; align-items:center; gap:10px; width:100%; border:none; background:transparent;
+    color:var(--ink); font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13.5px;
+    padding:10px 11px; border-radius:9px; cursor:pointer; text-align:left; transition:background .12s ease;
+  }
+  .menu-item:hover{ background:var(--paper); }
+  .menu-item .mi-ic{ font-size:15px; flex-shrink:0; }
+  @media (min-width:700px){ .menu-dropdown{ right:0; } }
   .back-btn{
     background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14);
     color:#F1F5F9; width:32px; height:32px; border-radius:9px; font-size:16px; cursor:pointer; flex-shrink:0;
@@ -154,6 +175,21 @@
   .btn-add:hover{ background:#1E293B; }
   .btn-add:active{ transform:scale(0.99); }
 
+  .search-box{
+    position:relative; display:flex; align-items:center; margin-bottom:14px;
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+  }
+  .search-box .search-icon{ padding:0 4px 0 13px; font-size:13px; opacity:.6; flex-shrink:0; }
+  .search-box input{
+    flex:1; border:none; outline:none; background:transparent; padding:11px 8px;
+    font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink); min-width:0;
+  }
+  .search-box input::placeholder{ color:var(--ink-soft); }
+  .search-clear{
+    background:var(--paper); border:none; color:var(--ink-soft); width:22px; height:22px; border-radius:50%;
+    font-size:11px; cursor:pointer; margin-right:9px; flex-shrink:0;
+  }
   .register-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px; padding:0 2px; }
   .register-head .t{ font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; color:var(--ink); }
   .register-head .n{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-soft); }
@@ -178,6 +214,24 @@
   .roster-total{ text-align:right; flex-shrink:0; }
   .roster-total .amt{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--brass-deep); }
   .roster-total .lbl{ font-size:9px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+  .roster-kebab-wrap{ position:relative; flex-shrink:0; }
+  .roster-kebab{
+    background:transparent; border:none; color:var(--ink-soft); font-size:19px; line-height:1;
+    cursor:pointer; padding:4px 7px; border-radius:8px; transition:background .12s ease, color .12s ease;
+  }
+  .roster-kebab:hover{ background:var(--paper); color:var(--ink); }
+  .roster-kebab-menu{
+    display:none; position:absolute; right:0; top:32px; min-width:172px;
+    background:#FFFFFF; border:1px solid var(--line); border-radius:11px;
+    box-shadow:0 16px 34px rgba(15,23,42,0.2); padding:5px; z-index:40;
+  }
+  .roster-kebab-menu.open{ display:block; }
+  .rk-item{
+    display:flex; align-items:center; gap:9px; width:100%; border:none; background:transparent;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px; color:var(--ink);
+    padding:8px 9px; border-radius:8px; cursor:pointer; text-align:left; transition:background .12s ease;
+  }
+  .rk-item:hover{ background:var(--paper); }
   .chevron{ color:#CBD5E1; font-size:16px; }
 
   .empty{ text-align:center; padding:44px 20px; color:var(--ink-soft); background:var(--card); border:1px dashed var(--line); border-radius:var(--radius); }
@@ -448,6 +502,29 @@
     font-family:'Plus Jakarta Sans',sans-serif; transition:background .15s ease;
   }
   .data-manage-row .rm-btn:hover{ background:#FCA5A5; }
+  .annual-year-nav{
+    display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:12px;
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--ink);
+  }
+  .annual-year-nav button{
+    width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--paper);
+    color:var(--ink); font-size:16px; cursor:pointer;
+  }
+  .annual-year-nav button:hover{ background:#EEF2F8; }
+  .annual-list{ display:flex; flex-direction:column; gap:6px; max-height:320px; overflow-y:auto; margin-bottom:12px; }
+  .annual-row{
+    display:flex; align-items:center; gap:10px; width:100%; border:1px solid var(--line); background:var(--card);
+    border-radius:9px; padding:10px 12px; cursor:pointer; text-align:left; transition:background .12s ease, border-color .12s ease;
+  }
+  .annual-row:hover{ background:var(--paper); border-color:#CBD5E1; }
+  .annual-row .am-name{ flex:1; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px; color:var(--ink); }
+  .annual-row .am-total{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12.5px; color:var(--brass-deep); }
+  .annual-row .am-arrow{ color:#CBD5E1; font-size:15px; }
+  .annual-year-total{
+    display:flex; align-items:center; justify-content:space-between; background:var(--brass-soft);
+    border-radius:9px; padding:11px 14px; margin-bottom:14px; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700;
+  }
+  .annual-year-total b{ font-family:'JetBrains Mono',monospace; color:var(--brass-deep); font-size:14px; }
 
   /* Premium employee dashboard */
   .employee-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;background:linear-gradient(135deg,#0B1220,#16243A);color:#fff;border-radius:18px;margin:0 0 16px;box-shadow:0 12px 30px rgba(15,23,42,.14)}
@@ -497,9 +574,12 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
 /* Final mobile UI polish */
 .brand-seal{color:#22C55E!important;border-color:#22C55E!important}
 .topbar{position:relative}
-.duty-period-control{position:relative;top:auto;right:auto;margin:10px 0 12px;width:100%;z-index:30}
-.duty-period-card{width:100%;min-width:0}
-.duty-calendar-popover{right:0;left:0;width:auto;max-width:none}
+.duty-period-control{position:relative;top:auto;right:auto;display:inline-block;margin:10px 0 12px;width:auto;z-index:30}
+.duty-period-card{width:auto;min-width:0;padding:7px 11px;gap:8px}
+.duty-cal-icon{width:26px;height:26px;font-size:13px;border-radius:8px}
+.duty-period-title{font-size:8px}
+.duty-period-display{font-size:11px;margin-top:2px}
+.duty-period-arrow{font-size:15px}
 .input-with-actions{display:flex;align-items:center;gap:6px}
 .input-with-actions input{flex:1;min-width:0}
 .name-actions{display:flex;gap:5px;flex-shrink:0}
@@ -513,8 +593,9 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
   .title-block .eyebrow{font-size:9px}
   .title-block .sub{font-size:10px}
   .brand-seal{width:48px;height:48px;font-size:14px}
-  .duty-period-control{margin:10px 0 10px}
-  .duty-period-card{padding:10px 11px}
+  .duty-period-control{margin:10px 0 10px;width:100%;display:block}
+  .duty-period-card{width:100%;padding:10px 11px}
+  .duty-calendar-popover{right:0;left:0;width:auto;max-width:none}
   .employee-hero{align-items:flex-start;gap:10px;padding:14px}
   .employee-hero-left{gap:10px;min-width:0}
   .employee-avatar{width:50px;height:50px}
@@ -617,6 +698,702 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
 .period-nav{display:none!important;}
 .snapshot-card,.snapshot-head,.snapshot-line{display:none!important;}
 </style>
+
+<style>
+/* ===== PKG PROFESSIONAL MENU POLISH ===== */
+.menu-dropdown{
+  min-width:220px!important;
+  padding:8px!important;
+  background:rgba(255,255,255,.98)!important;
+  border:1px solid rgba(16,185,129,.18)!important;
+  border-radius:16px!important;
+  box-shadow:0 20px 45px rgba(15,23,42,.18),0 5px 14px rgba(16,185,129,.08)!important;
+  backdrop-filter:blur(12px);
+}
+.menu-dropdown::before{
+  content:"";
+  display:block;
+  height:3px;
+  width:46px;
+  margin:1px auto 7px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#10B981,#34D399);
+  opacity:.95;
+}
+.menu-item{
+  min-height:44px!important;
+  height:44px!important;
+  padding:10px 12px!important;
+  gap:10px!important;
+  border-radius:11px!important;
+  font-size:13.5px!important;
+  font-weight:600!important;
+  color:#172033!important;
+  position:relative;
+  overflow:hidden;
+  transition:background .16s ease,transform .12s ease,box-shadow .16s ease,color .16s ease;
+}
+.menu-item::after{
+  content:"›";
+  margin-left:auto;
+  font-size:18px;
+  line-height:1;
+  color:#A7B3C4;
+  opacity:0;
+  transform:translateX(-4px);
+  transition:all .16s ease;
+}
+.menu-item:hover{
+  background:linear-gradient(135deg,#ECFDF5 0%,#F0FDF8 100%)!important;
+  color:#047857!important;
+  transform:translateX(1px);
+  box-shadow:inset 0 0 0 1px rgba(16,185,129,.12);
+}
+.menu-item:hover::after{
+  opacity:1;
+  transform:translateX(0);
+  color:#10B981;
+}
+.menu-item .mi-ic{
+  width:28px!important;
+  height:28px!important;
+  flex:0 0 28px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:9px!important;
+  font-size:14px!important;
+  background:#ECFDF5!important;
+  box-shadow:inset 0 0 0 1px rgba(16,185,129,.10);
+  transition:transform .16s ease,background .16s ease;
+}
+.menu-item:hover .mi-ic{
+  background:#D1FAE5!important;
+  transform:scale(1.06);
+}
+.menu-item + .menu-item{
+  margin-top:3px;
+}
+.menu-item:last-child{
+  margin-top:5px;
+  border-top:1px solid #EEF2F4;
+  border-radius:0 0 11px 11px!important;
+  padding-top:12px!important;
+  height:47px!important;
+}
+.menu-btn{
+  border-color:rgba(52,211,153,.28)!important;
+}
+.menu-btn:hover{
+  background:rgba(16,185,129,.16)!important;
+  border-color:rgba(52,211,153,.45)!important;
+}
+
+/* ===== ANNUAL DATA PANEL POLISH ===== */
+#annualModalCard{
+  border:1px solid rgba(16,185,129,.16);
+  box-shadow:0 24px 60px rgba(15,23,42,.22);
+}
+#annualModalCard h2{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+#annualModalCard .sub{
+  line-height:1.55;
+}
+#annualModalCard .annual-year-nav{
+  background:#F0FDF8;
+  border:1px solid #D1FAE5;
+  border-radius:12px;
+  padding:8px 10px;
+  margin-bottom:12px;
+}
+#annualModalCard .annual-year-nav button{
+  background:#fff;
+  border-color:#CDEFE0;
+  color:#047857;
+}
+#annualModalCard .annual-year-nav button:hover{
+  background:#ECFDF5;
+  border-color:#A7F3D0;
+}
+#annualModalCard .annual-list{
+  gap:7px;
+  max-height:360px;
+  padding:1px 2px 2px;
+}
+#annualModalCard .annual-row{
+  min-height:48px;
+  padding:9px 11px;
+  border-color:#E6EEE9;
+  border-radius:11px;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(15,23,42,.03);
+}
+#annualModalCard .annual-row:hover{
+  background:linear-gradient(135deg,#F0FDF8,#F8FFFB);
+  border-color:#A7F3D0;
+  box-shadow:0 5px 14px rgba(16,185,129,.10);
+  transform:translateY(-1px);
+}
+#annualModalCard .annual-row .am-name{
+  font-weight:700;
+}
+#annualModalCard .annual-row .am-name::before{
+  content:"";
+  display:inline-block;
+  width:7px;
+  height:7px;
+  margin-right:8px;
+  border-radius:50%;
+  background:#10B981;
+  vertical-align:1px;
+}
+#annualModalCard .annual-row .am-total{
+  color:#047857;
+}
+#annualModalCard .annual-row .am-arrow{
+  color:#10B981;
+  font-weight:800;
+}
+#annualModalCard .annual-year-total{
+  background:linear-gradient(135deg,#ECFDF5,#F0FDF8);
+  border:1px solid #D1FAE5;
+}
+#annualModalCard .annual-year-total b{
+  color:#047857;
+}
+#annualModalCard .modal-btn.primary{
+  background:linear-gradient(135deg,#059669,#10B981);
+  box-shadow:0 6px 14px rgba(16,185,129,.18);
+}
+#annualModalCard .modal-btn.primary:hover{
+  opacity:.94;
+}
+@media(max-width:520px){
+  .menu-dropdown{
+    min-width:210px!important;
+  }
+}
+</style>
+
+
+<style id="pkg-premium-final-ui">
+/* =========================================================
+   PKG PREMIUM PAYROLL DASHBOARD — FINAL UI OVERRIDES
+   Functionality/data logic intentionally unchanged.
+   ========================================================= */
+
+:root{
+  --paper:#F7F8FA !important;
+  --paper-line:rgba(15,23,42,.02);
+  --card:#FFFFFF !important;
+  --ink:#111827 !important;
+  --ink-soft:#64748B !important;
+  --navy:#070D1D !important;
+  --navy-deep:#070D1D !important;
+  --slate:#334155;
+  --brass:#C9A227 !important;
+  --brass-deep:#C9A227 !important;
+  --brass-soft:#FBF7E8 !important;
+  --oxblood:#DC2626 !important;
+  --oxblood-soft:#FEE2E2 !important;
+  --forest:#059669 !important;
+  --forest-soft:#ECFDF5 !important;
+  --amber:#D97706 !important;
+  --amber-deep:#D97706 !important;
+  --amber-soft:#FFF7ED !important;
+  --teal:#0F766E !important;
+  --teal-deep:#0F766E !important;
+  --teal-soft:#E6FFFB !important;
+  --line:#E5E7EB !important;
+  --shadow-sm:0 4px 20px rgba(15,23,42,.05) !important;
+  --shadow-md:0 8px 28px rgba(15,23,42,.07) !important;
+  --radius:16px !important;
+}
+
+html,body,*{
+  font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+}
+body{
+  background:#F7F8FA !important;
+  color:#111827 !important;
+}
+
+/* ---------- HEADER ---------- */
+.topbar{
+  min-height:68px !important;
+  padding:14px 16px !important;
+  background:linear-gradient(135deg,#070D1D 0%,#111C3D 100%) !important;
+  color:#fff !important;
+}
+.topbar::before,.topbar::after{
+  display:none !important;
+}
+.toprow{
+  min-height:40px;
+}
+.brand-seal{
+  width:40px !important;
+  height:40px !important;
+  border-radius:11px !important;
+  border:1px solid rgba(201,162,39,.55) !important;
+  background:rgba(15,118,110,.18) !important;
+  color:#C9A227 !important;
+  box-shadow:none !important;
+}
+.eyebrow{
+  color:#C9A227 !important;
+  font-size:11px !important;
+  font-weight:500 !important;
+  letter-spacing:.08em !important;
+}
+h1{
+  font-family:'Inter',sans-serif !important;
+  font-size:30px !important;
+  line-height:1.15 !important;
+  font-weight:700 !important;
+  color:#fff !important;
+}
+.sub{
+  color:#94A3B8 !important;
+  font-size:12px !important;
+  font-weight:400 !important;
+}
+.menu-btn,.back-btn,.period-btn{
+  background:rgba(255,255,255,.06) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+  border-radius:10px !important;
+}
+.menu-btn:hover,.back-btn:hover,.period-btn:hover{
+  background:rgba(201,162,39,.14) !important;
+  border-color:rgba(201,162,39,.45) !important;
+}
+
+/* ---------- PAGE / CARDS ---------- */
+.wrap{
+  max-width:1280px !important;
+  padding:32px 5% 40px !important;
+}
+.summary{
+  gap:16px !important;
+  margin-bottom:24px !important;
+}
+.sum-card,.section-card,.roster-row,.attendance-hero{
+  background:#fff !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:16px !important;
+  box-shadow:0 4px 20px rgba(15,23,42,.05) !important;
+}
+.sum-card{
+  padding:20px 22px !important;
+}
+.sum-card::before{
+  width:3px !important;
+  background:#C9A227 !important;
+}
+.sum-card .lbl{
+  color:#64748B !important;
+  font-size:11px !important;
+  font-weight:500 !important;
+  letter-spacing:.06em !important;
+}
+.sum-card .val{
+  color:#111827 !important;
+  font-size:28px !important;
+  font-weight:700 !important;
+  line-height:1.15 !important;
+}
+.sum-card:nth-child(2) .val{
+  color:#0F766E !important;
+}
+
+/* ---------- BUTTONS ---------- */
+.btn-add{
+  background:#070D1D !important;
+  color:#fff !important;
+  border-radius:11px !important;
+  padding:12px 16px !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+  box-shadow:none !important;
+}
+.btn-add:hover{
+  background:#C9A227 !important;
+  color:#070D1D !important;
+  transform:none !important;
+}
+.btn-print{
+  border-color:#C9A227 !important;
+  color:#070D1D !important;
+  background:#fff !important;
+  border-radius:11px !important;
+  font-weight:600 !important;
+}
+.btn-print:hover{
+  background:#FBF7E8 !important;
+  box-shadow:none !important;
+}
+
+/* ---------- SEARCH ---------- */
+.search-box{
+  background:#fff !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:11px !important;
+  box-shadow:none !important;
+  margin-bottom:24px !important;
+}
+.search-box:focus-within{
+  border-color:#C9A227 !important;
+  box-shadow:0 0 0 3px rgba(201,162,39,.10) !important;
+}
+.search-box input{
+  font-size:14px !important;
+  color:#111827 !important;
+}
+.search-box input::placeholder{
+  color:#94A3B8 !important;
+}
+
+/* ---------- SECTION TITLES / EMPLOYEE LIST ---------- */
+.register-head{
+  margin-bottom:12px !important;
+}
+.register-head .t{
+  font-size:19px !important;
+  font-weight:600 !important;
+  color:#111827 !important;
+}
+.register-head .n{
+  font-size:12px !important;
+  color:#64748B !important;
+  font-weight:500 !important;
+}
+.roster{
+  gap:12px !important;
+}
+.roster-row{
+  padding:16px !important;
+  box-shadow:0 4px 20px rgba(15,23,42,.04) !important;
+}
+.roster-row:hover{
+  border-color:#D8DDE5 !important;
+  box-shadow:0 8px 28px rgba(15,23,42,.07) !important;
+  transform:translateY(-1px);
+}
+.roster-sl{
+  color:#C9A227 !important;
+  border-color:#E5E7EB !important;
+}
+.roster-name{
+  color:#111827 !important;
+  font-size:15px !important;
+  font-weight:600 !important;
+}
+.roster-id,.roster-figs{
+  color:#64748B !important;
+}
+.roster-total .amt{
+  color:#111827 !important;
+  font-size:17px !important;
+  font-weight:700 !important;
+}
+.roster-total .lbl{
+  color:#64748B !important;
+}
+.roster-kebab{
+  color:#64748B !important;
+}
+.roster-kebab:hover{
+  color:#0F766E !important;
+  background:#F0FDFA !important;
+}
+
+/* ---------- DETAIL CARDS ---------- */
+.section-card{
+  padding:22px 24px !important;
+  margin-bottom:24px !important;
+}
+.section-lbl{
+  font-size:19px !important;
+  font-weight:600 !important;
+  color:#111827 !important;
+}
+.section-lbl .dot{
+  width:7px !important;
+  height:7px !important;
+  background:#0F766E !important;
+}
+.field label{
+  color:#64748B !important;
+  font-size:11px !important;
+  font-weight:500 !important;
+}
+.field input,.field select{
+  height:42px !important;
+  border:1px solid #E5E7EB !important;
+  background:#fff !important;
+  border-radius:11px !important;
+  color:#111827 !important;
+}
+.field input:focus,.field select:focus{
+  border-color:#C9A227 !important;
+  box-shadow:0 0 0 3px rgba(201,162,39,.10) !important;
+}
+
+/* ---------- CALCULATION ---------- */
+.calc-strip{
+  background:#F7F8FA !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:12px !important;
+  padding:16px !important;
+}
+.calc-item .k{
+  color:#64748B !important;
+  font-size:11px !important;
+  font-weight:500 !important;
+}
+.calc-item .v{
+  color:#111827 !important;
+  font-size:16px !important;
+  font-weight:600 !important;
+}
+.v.bonus{color:#059669 !important}
+.v.deduct{color:#DC2626 !important}
+.v.amber{color:#D97706 !important}
+
+/* ---------- GRAND TOTAL ---------- */
+.grand{
+  background:#fff !important;
+  color:#111827 !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:16px !important;
+  padding:20px 22px !important;
+  box-shadow:0 4px 20px rgba(15,23,42,.05) !important;
+}
+.grand-line{
+  color:#64748B !important;
+  border-bottom:1px solid #E5E7EB !important;
+}
+.grand-line b{
+  color:#111827 !important;
+}
+.grand-final{
+  border-top:1px solid #E5E7EB !important;
+}
+.grand-final .k{
+  color:#64748B !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+}
+.grand-final .v{
+  color:#0B1224 !important;
+  font-size:32px !important;
+  font-weight:700 !important;
+}
+.grand-final .k::before{
+  content:"◆";
+  color:#C9A227;
+  font-size:9px;
+  margin-right:7px;
+  vertical-align:3px;
+}
+
+/* ---------- EMPLOYEE HERO ---------- */
+.employee-hero{
+  background:linear-gradient(135deg,#070D1D,#111C3D) !important;
+  border-radius:16px !important;
+  padding:20px 22px !important;
+  box-shadow:0 8px 28px rgba(15,23,42,.10) !important;
+}
+.employee-avatar{
+  background:#0F766E !important;
+  box-shadow:none !important;
+}
+.active-badge{
+  background:rgba(5,150,105,.14) !important;
+  color:#86EFAC !important;
+}
+
+/* ---------- ATTENDANCE ---------- */
+.attendance-hero{
+  padding:20px !important;
+  margin-bottom:24px !important;
+}
+.health-ring{
+  background:conic-gradient(#059669 var(--health),#E5E7EB 0) !important;
+}
+.health-bar span{
+  background:#059669 !important;
+}
+
+/* ---------- ANNUAL DATA / MENU ---------- */
+.menu-dropdown{
+  min-width:220px !important;
+  padding:8px !important;
+  background:#fff !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:14px !important;
+  box-shadow:0 12px 32px rgba(15,23,42,.12) !important;
+}
+.menu-dropdown::before{
+  background:#C9A227 !important;
+  height:2px !important;
+}
+.menu-item{
+  min-height:44px !important;
+  height:44px !important;
+  padding:10px 12px !important;
+  border-radius:10px !important;
+  color:#111827 !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+}
+.menu-item:hover{
+  background:#F0FDFA !important;
+  color:#0F766E !important;
+}
+.menu-item .mi-ic{
+  width:28px !important;
+  height:28px !important;
+  border-radius:8px !important;
+  background:#F0FDFA !important;
+  box-shadow:none !important;
+}
+.menu-item:hover .mi-ic{
+  background:#DDF7F2 !important;
+}
+.menu-item::after{
+  color:#C9A227 !important;
+}
+#annualModalCard{
+  border-radius:16px !important;
+  border:1px solid #E5E7EB !important;
+}
+#annualModalCard h2{
+  font-size:20px !important;
+  font-weight:600 !important;
+}
+#annualModalCard .annual-year-nav{
+  background:#F7F8FA !important;
+  border:1px solid #E5E7EB !important;
+}
+#annualModalCard .annual-row{
+  min-height:48px !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:11px !important;
+  background:#fff !important;
+}
+#annualModalCard .annual-row:hover{
+  background:#F0FDFA !important;
+  border-color:#B7E7DF !important;
+  box-shadow:none !important;
+}
+#annualModalCard .annual-row .am-name{
+  font-size:14px !important;
+  font-weight:600 !important;
+}
+#annualModalCard .annual-row .am-total{
+  color:#0F766E !important;
+  font-weight:600 !important;
+}
+#annualModalCard .annual-row .am-name::before{
+  background:#C9A227 !important;
+}
+#annualModalCard .annual-year-total{
+  background:#FBF7E8 !important;
+  border:1px solid #EADDA8 !important;
+}
+#annualModalCard .annual-year-total b{
+  color:#111827 !important;
+}
+#annualModalCard .modal-btn.primary{
+  background:#070D1D !important;
+  color:#fff !important;
+}
+#annualModalCard .modal-btn.primary:hover{
+  background:#C9A227 !important;
+  color:#070D1D !important;
+}
+
+/* ---------- GENERAL MODALS / CONTROLS ---------- */
+.modal-card{
+  border-radius:16px !important;
+  border:1px solid #E5E7EB !important;
+  box-shadow:0 16px 50px rgba(15,23,42,.14) !important;
+}
+.modal-card h2{
+  color:#111827 !important;
+  font-size:20px !important;
+  font-weight:600 !important;
+}
+.modal-btn{
+  border-radius:11px !important;
+  font-weight:600 !important;
+}
+.modal-btn.primary{
+  background:#070D1D !important;
+}
+.modal-btn.primary:hover{
+  background:#C9A227 !important;
+  color:#070D1D !important;
+}
+.modal-btn.ghost{
+  border:1px solid #E5E7EB !important;
+  color:#64748B !important;
+  background:#fff !important;
+}
+
+/* ---------- QUICK ACTIONS: restrained, corporate ---------- */
+.qa-btn{
+  background:#111C3D !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  box-shadow:none !important;
+}
+.qa-btn:hover{
+  background:#0F766E !important;
+  box-shadow:none !important;
+}
+
+/* ---------- REMOVE EXCESS DECORATION ---------- */
+.duty-period-card{
+  background:#fff !important;
+  border:1px solid #E5E7EB !important;
+  box-shadow:0 4px 20px rgba(15,23,42,.05) !important;
+  border-radius:14px !important;
+}
+.duty-cal-icon{
+  background:#F0FDFA !important;
+  border:1px solid #D8F3EE !important;
+  color:#0F766E !important;
+}
+.duty-calendar-popover{
+  background:#fff !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:16px !important;
+  box-shadow:0 12px 36px rgba(15,23,42,.12) !important;
+}
+.duty-calendar-grid button.selected{
+  background:#0F766E !important;
+  box-shadow:none !important;
+}
+.duty-calendar-grid button.today{
+  box-shadow:inset 0 0 0 1.5px #C9A227 !important;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:700px){
+  h1{font-size:24px !important;}
+  .wrap{padding:24px 16px 32px !important;}
+  .sum-card{padding:16px !important;}
+  .sum-card .val{font-size:24px !important;}
+  .section-card{padding:18px !important;}
+  .grand-final .v{font-size:28px !important;}
+}
+</style>
+
 </head>
 <body>
 <div class="topbar">
@@ -630,8 +1407,17 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
         <p class="sub" id="pageSub">Monthly attendance &amp; salary ledger</p>
       </div>
     </div>
+    <div class="menu-control" id="menuControl">
+      <button class="menu-btn" id="menuBtn" title="Menu">☰</button>
+      <div class="menu-dropdown" id="menuDropdown">
+        <button type="button" class="menu-item" id="menuAnnual"><span class="mi-ic">📊</span><span>Annual Data</span></button>
+        <button type="button" class="menu-item" id="menuManage"><span class="mi-ic">👤</span><span>Manage Employee</span></button>
+        <button type="button" class="menu-item" id="menuPrint"><span class="mi-ic">🖨️</span><span>Print Report</span></button>
+        <button type="button" class="menu-item" id="menuPrintLabel"><span class="mi-ic">🏷️</span><span>Print Label</span></button>
+      </div>
+    </div>
   </div>
-  <div id="periodCalendarControl" class="duty-period-control"><button id="periodCalendarBtn" type="button" class="duty-period-card"><span class="duty-cal-icon">📅</span><span class="duty-period-text"><span class="duty-period-title">Current Period</span><span id="periodDisplay" class="duty-period-display">26 Jul – 25 Aug</span></span><span class="duty-period-arrow">›</span></button><div id="periodCalendarPopover" class="duty-calendar-popover">
+  <div id="periodCalendarControl" class="duty-period-control"><button id="periodCalendarBtn" type="button" class="duty-period-card"><span class="duty-cal-icon">⏳</span><span class="duty-period-text"><span class="duty-period-title">Current Cycle</span><span id="periodDisplay" class="duty-period-display">26 Jul – 25 Aug</span></span><span class="duty-period-arrow">›</span></button><div id="periodCalendarPopover" class="duty-calendar-popover">
     <div class="duty-manual-edit">
       <div class="fld"><label>Start Date</label><input type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" id="manualStartInput"></div>
       <div class="fld"><label>End Date</label><input type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" id="manualEndInput"></div>
@@ -642,9 +1428,6 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
   <div class="period-row">
     <p class="period-readout" id="periodReadout"></p>
     <div class="quick-actions">
-      <button class="qa-btn" id="qaPrint" title="Print / Export Salary">🖨️</button>
-      
-      <button class="qa-btn qa-danger" id="qaRemove" title="Remove Employee">🗑️</button>
       <button class="qa-btn qa-lock" id="qaLock" title="Unlock Edit Mode">🔓</button>
     </div>
   </div>
@@ -681,6 +1464,9 @@ color:#FCA5A5;font-size:9px;font-weight:800;cursor:pointer;vertical-align:middle
 <div class="modal-overlay" id="genOverlay">
   <div class="modal-card" id="genModalCard"></div>
 </div>
+<div class="modal-overlay" id="annualOverlay">
+  <div class="modal-card" id="annualModalCard" style="max-width:480px;"></div>
+</div>
 <div class="modal-overlay" id="deleteConfirmOverlay">
   <div class="modal-card">
     <h2>Delete — are you sure?</h2>
@@ -701,6 +1487,7 @@ const PERIOD_KEY = 'period_v1';
 let employees = [];
 let period = { start:'', end:'' };
 let view = { mode: 'list' };
+let searchQuery = '';
 let unlocked = false;
 const APP_PASSWORD = 'Alamxir00';
 
@@ -1075,12 +1862,23 @@ function renderList(){
 
   const totalGrand = employees.reduce((s,e)=>s+monthlyCalc(e).grand, 0);
 
+  const q = searchQuery.trim().toLowerCase();
+  const visibleEmployees = q
+    ? employees.filter(emp =>
+        (emp.name||'').toLowerCase().includes(q) ||
+        (emp.empId||'').toLowerCase().includes(q) ||
+        (emp.designation||'').toLowerCase().includes(q))
+    : employees;
+
   let body = '';
   if(employees.length===0){
     body = `<div class="empty"><div class="big">🧾</div>Register is empty.<br/>Tap "Add Employee" to open the first ledger entry.</div>`;
+  } else if(visibleEmployees.length===0){
+    body = `<div class="empty"><div class="big">🔍</div>No employee matches "${escapeHtml(searchQuery)}".</div>`;
   } else {
     let rows = '';
-    employees.forEach((emp, idx) => {
+    visibleEmployees.forEach((emp) => {
+      const idx = employees.indexOf(emp);
       const c = monthlyCalc(emp);
       rows += `
       <div class="roster-row" data-open="${emp.id}">
@@ -1098,13 +1896,21 @@ function renderList(){
           <div class="amt">${money(c.grand)}</div>
           <div class="lbl">Grand Total</div>
         </div>
+        <div class="roster-kebab-wrap">
+          <button type="button" class="roster-kebab" data-kebab="${emp.id}" title="More actions">⋮</button>
+          <div class="roster-kebab-menu" id="kebab-${emp.id}">
+            <button type="button" class="rk-item" data-act="pdf" data-id="${emp.id}"><span>📄</span><span>Download PDF</span></button>
+            <button type="button" class="rk-item" data-act="print" data-id="${emp.id}"><span>🖨️</span><span>Print</span></button>
+            <button type="button" class="rk-item" data-act="edit" data-id="${emp.id}"><span>✏️</span><span>Edit</span></button>
+          </div>
+        </div>
         <div class="chevron">›</div>
       </div>`;
     });
     body = `
-      <div class="register-head"><span class="t">Employee Roster</span><span class="n">${employees.length} record${employees.length>1?'s':''}</span></div>
+      <div class="register-head"><span class="t">Employee Roster</span><span class="n">${visibleEmployees.length} of ${employees.length} record${employees.length>1?'s':''}</span></div>
       <div class="roster">${rows}</div>
-      <div class="note">All records are saved automatically on this device. Tap an employee to open and edit their ledger.</div>
+      <div class="note">All records are saved automatically. Tap an employee to open and edit their ledger.</div>
     `;
   }
 
@@ -1114,12 +1920,55 @@ function renderList(){
       <div class="sum-card"><div class="lbl">Grand Total (All)</div><div class="val">${money(totalGrand)}</div></div>
     </div>
     <button class="btn-add" id="btnAdd">+ Add Employee</button>
+    ${employees.length>0 ? `
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="employeeSearch" placeholder="Search by name, ID or designation…" value="${escapeHtml(searchQuery)}" autocomplete="off" />
+      ${searchQuery ? `<button type="button" class="search-clear" id="searchClearBtn">✕</button>` : ''}
+    </div>` : ''}
     ${body}
   `;
   document.getElementById('btnAdd').addEventListener('click', addEmployee);
   wrap.querySelectorAll('[data-open]').forEach(row => {
     row.addEventListener('click', () => openDetail(row.getAttribute('data-open')));
   });
+  wrap.querySelectorAll('.roster-kebab').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-kebab');
+      const menu = document.getElementById('kebab-'+id);
+      const wasOpen = menu.classList.contains('open');
+      wrap.querySelectorAll('.roster-kebab-menu.open').forEach(m => m.classList.remove('open'));
+      if(!wasOpen) menu.classList.add('open');
+    });
+  });
+  wrap.querySelectorAll('.rk-item').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const act = btn.getAttribute('data-act');
+      wrap.querySelectorAll('.roster-kebab-menu.open').forEach(m => m.classList.remove('open'));
+      const emp = employees.find(x => x.id===id);
+      if(!emp) return;
+      if(act==='pdf') downloadPDF(emp);
+      else if(act==='print') combinedPrintPDF([emp.id]);
+      else if(act==='edit') openDetail(emp.id);
+    });
+  });
+  const searchInput = document.getElementById('employeeSearch');
+  if(searchInput){
+    searchInput.addEventListener('input', e => {
+      searchQuery = e.target.value;
+      const caret = e.target.selectionStart;
+      render();
+      const again = document.getElementById('employeeSearch');
+      if(again){ again.focus(); again.setSelectionRange(caret, caret); }
+    });
+  }
+  const clearBtn = document.getElementById('searchClearBtn');
+  if(clearBtn){
+    clearBtn.addEventListener('click', () => { searchQuery=''; render(); });
+  }
 }
 
 /* ---------------- DETAIL ---------------- */
@@ -1688,8 +2537,28 @@ function updateMenuLabels(){
   btn.textContent = unlocked ? '🔒' : '🔓';
   btn.title = unlocked ? 'Switch to Viewer' : 'Unlock Edit Mode';
 }
-document.getElementById('qaPrint').addEventListener('click', openPrintModal);
 document.getElementById('qaLock').addEventListener('click', () => { if(unlocked){ unlocked=false; render(); } else { openLockOverlay(); } });
+
+/* ---------------- TOP MENU (☰) ---------------- */
+const menuControl = document.getElementById('menuControl');
+const menuBtn = document.getElementById('menuBtn');
+const menuDropdown = document.getElementById('menuDropdown');
+menuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  menuDropdown.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if(menuControl && !menuControl.contains(e.target)) menuDropdown.classList.remove('open');
+  if(!e.target.closest('.roster-kebab-wrap')) document.querySelectorAll('.roster-kebab-menu.open').forEach(m => m.classList.remove('open'));
+});
+document.getElementById('menuAnnual').addEventListener('click', () => { menuDropdown.classList.remove('open'); openAnnualDataModal(); });
+document.getElementById('menuManage').addEventListener('click', () => {
+  menuDropdown.classList.remove('open');
+  if(!unlocked){ openLockOverlay(); return; }
+  openRemoveEmployeeModal();
+});
+document.getElementById('menuPrint').addEventListener('click', () => { menuDropdown.classList.remove('open'); openPrintModal(); });
+document.getElementById('menuPrintLabel').addEventListener('click', () => { menuDropdown.classList.remove('open'); openPrintLabelModal(); });
 
 const heroClearBtn = document.getElementById('heroClearAttendance');
 if(heroClearBtn){
@@ -1698,8 +2567,6 @@ if(heroClearBtn){
     openClearAttendanceModal();
   });
 }
-
-document.getElementById('qaRemove').addEventListener('click', () => { if(!unlocked){ openLockOverlay(); return; } openRemoveEmployeeModal(); });
 
 /* ---------------- CLEAR ATTENDANCE DATA (ALL) ---------------- */
 function openClearAttendanceModal(){
@@ -1743,7 +2610,7 @@ function openRemoveEmployeeModal(){
 function renderRemoveEmployeeModalBody(card){
   if(employees.length===0){
     card.innerHTML = `<button type="button" class="modal-close-x" id="genXBtn" title="Close">✕</button>
-      <h2>🗑️ Remove Employee</h2><p class="sub">No employees left.</p>
+      <h2>👤 Manage Employee</h2><p class="sub">No employees yet.</p>
       <div class="modal-btn-row"><button class="modal-btn ghost" id="genCloseBtn2" style="flex:1;">Close</button></div>`;
     document.getElementById('genCloseBtn2').addEventListener('click', () => document.getElementById('genOverlay').style.display='none');
     document.getElementById('genXBtn').addEventListener('click', () => document.getElementById('genOverlay').style.display='none');
@@ -1755,7 +2622,7 @@ function renderRemoveEmployeeModalBody(card){
   }).join('');
   card.innerHTML = `
     <button type="button" class="modal-close-x" id="genXBtn" title="Close">✕</button>
-    <h2>🗑️ Remove Employee</h2>
+    <h2>👤 Manage Employee</h2>
     <p class="sub">Tap Remove to delete an employee and all of their data. This cannot be undone.</p>
     <div id="rmEmpList">${rowsHtml}</div>
     <div class="modal-btn-row"><button class="modal-btn ghost" id="genCloseBtn2" style="flex:1;">Done</button></div>`;
@@ -1791,23 +2658,18 @@ function openPrintModal(){
   }).join('');
   card.innerHTML = `
     <button type="button" class="modal-close-x" id="printXBtn" title="Close">✕</button>
-    <h2>🖨️ Print / Export Salary</h2>
-    <p class="sub">Select employees to include.</p>
+    <h2>🖨️ Print Report</h2>
+    <p class="sub">Select employees to include — pick a few, or Select All for everyone at once.</p>
     <label class="select-all-row"><input type="checkbox" id="selectAllChk" checked /><span>Select All (${employees.length})</span></label>
     <div id="printEmpList">${rowsHtml}</div>
     <div class="modal-btn-row">
-      <button class="modal-btn ghost" id="printCloseBtn">Cancel</button>
-      <button class="modal-btn primary" id="printCsvBtn">⬇ CSV / Excel</button>
+      <button class="modal-btn primary" id="printPdfBtn" style="width:100%;">🖨️ Print</button>
     </div>
     <div class="modal-btn-row">
-      <button class="modal-btn primary" id="printPdfBtn" style="width:100%;">🖨️ Print PDF (A4)</button>
-    </div>
-    <div class="modal-btn-row">
-      <button class="modal-btn primary" id="printLabelBtn" style="width:100%;background:var(--forest);">🏷️ Print Label (3×5in — Zebra)</button>
+      <button class="modal-btn primary" id="printCsvBtn" style="width:100%;background:var(--forest);">⬇️ Download</button>
     </div>
   `;
   overlay.style.display = 'flex';
-  document.getElementById('printCloseBtn').addEventListener('click', () => overlay.style.display='none');
   document.getElementById('printXBtn').addEventListener('click', () => overlay.style.display='none');
   document.getElementById('selectAllChk').addEventListener('change', (e) => {
     card.querySelectorAll('.print-check').forEach(cb => cb.checked = e.target.checked);
@@ -1824,6 +2686,43 @@ function openPrintModal(){
     if(sel.length===0) return;
     exportCSV(sel);
   });
+}
+
+/* ---------------- PRINT LABEL (3x5in) ---------------- */
+function openPrintLabelModal(){
+  const overlay = document.getElementById('printOverlay');
+  const card = document.getElementById('printModalCard');
+  if(employees.length===0){
+    card.innerHTML = `<button type="button" class="modal-close-x" id="printXBtn" title="Close">✕</button>
+      <h2>🏷️ Print Label</h2><p class="sub">No employees yet. Add an employee first.</p>
+      <div class="modal-btn-row"><button class="modal-btn ghost" id="printCloseBtn" style="flex:1;">Close</button></div>`;
+    overlay.style.display = 'flex';
+    document.getElementById('printCloseBtn').addEventListener('click', () => overlay.style.display='none');
+    document.getElementById('printXBtn').addEventListener('click', () => overlay.style.display='none');
+    return;
+  }
+  const rowsHtml = employees.map(emp => {
+    const c = monthlyCalc(emp);
+    return `<label class="emp-check-row"><input type="checkbox" class="print-check" value="${emp.id}" checked />
+      <span class="nm">${escapeHtml(emp.name) || 'Unnamed employee'}</span>
+      <span class="amt">${money(c.grand)}</span></label>`;
+  }).join('');
+  card.innerHTML = `
+    <button type="button" class="modal-close-x" id="printXBtn" title="Close">✕</button>
+    <h2>🏷️ Print Label</h2>
+    <p class="sub">3×5in labels (Zebra). Select employees — pick one, or Select All.</p>
+    <label class="select-all-row"><input type="checkbox" id="selectAllChk" checked /><span>Select All (${employees.length})</span></label>
+    <div id="printEmpList">${rowsHtml}</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn primary" id="printLabelBtn" style="width:100%;background:var(--forest);">🏷️ Print Label (3×5in)</button>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+  document.getElementById('printXBtn').addEventListener('click', () => overlay.style.display='none');
+  document.getElementById('selectAllChk').addEventListener('change', (e) => {
+    card.querySelectorAll('.print-check').forEach(cb => cb.checked = e.target.checked);
+  });
+  const getSelected = () => Array.from(card.querySelectorAll('.print-check:checked')).map(cb=>cb.value);
   document.getElementById('printLabelBtn').addEventListener('click', () => {
     const sel = getSelected();
     if(sel.length===0) return;
@@ -1930,6 +2829,83 @@ function combinedPrintPDF(selectedIds){
 
   doc.save('salary_summary_' + toISO(new Date()) + '.pdf');
   document.getElementById('printOverlay').style.display = 'none';
+}
+
+/* ---------------- ANNUAL DATA ---------------- */
+let annualYear = new Date().getFullYear();
+function payrollMonthRange(year, month){
+  // month: 1-12. Payroll cycle runs 26th of prior month through 25th of this month.
+  const end = new Date(year, month-1, 25);
+  const start = new Date(year, month-2, 26);
+  return { start: toISO(start), end: toISO(end) };
+}
+function calcGrandForPeriod(start, end){
+  const backup = period;
+  period = { start, end };
+  const total = employees.reduce((s,e)=>s+monthlyCalc(e).grand, 0);
+  period = backup;
+  return total;
+}
+function openAnnualDataModal(){
+  renderAnnualModal();
+  document.getElementById('annualOverlay').style.display = 'flex';
+}
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function renderAnnualModal(){
+  const card = document.getElementById('annualModalCard');
+  let rows = '';
+  let yearGrand = 0;
+  for(let m=1; m<=12; m++){
+    const { start, end } = payrollMonthRange(annualYear, m);
+    const total = calcGrandForPeriod(start, end);
+    yearGrand += total;
+    rows += `<button type="button" class="annual-row" data-astart="${start}" data-aend="${end}" title="View employee data for ${MONTH_NAMES[m-1]} ${annualYear}">
+      <span class="am-name">${MONTH_NAMES[m-1]}</span>
+      <span class="am-total">${money(total)}</span>
+      <span class="am-arrow">›</span>
+    </button>`;
+  }
+  card.innerHTML = `
+    <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+    <h2>📊 Annual Data</h2>
+    <p class="sub">Select any month to view that month’s employee attendance &amp; salary data.</p>
+    <div class="annual-year-nav">
+      <button type="button" id="annualPrevYear">‹</button>
+      <span id="annualYearLabel">${annualYear}</span>
+      <button type="button" id="annualNextYear">›</button>
+    </div>
+    <div class="annual-list">${rows}</div>
+    <div class="annual-year-total"><span>Year Total</span><b>${money(yearGrand)}</b></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn primary" id="annualDownloadBtn" style="width:100%;">⬇️ Download Annual Summary (CSV)</button>
+    </div>
+  `;
+  document.getElementById('annualXBtn').addEventListener('click', () => document.getElementById('annualOverlay').style.display='none');
+  document.getElementById('annualPrevYear').addEventListener('click', () => { annualYear--; renderAnnualModal(); });
+  document.getElementById('annualNextYear').addEventListener('click', () => { annualYear++; renderAnnualModal(); });
+  card.querySelectorAll('.annual-row').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const s = btn.getAttribute('data-astart');
+      const e = btn.getAttribute('data-aend');
+      document.getElementById('annualOverlay').style.display = 'none';
+      view = { mode:'list' };
+      await applyPeriod(s, e);
+    });
+  });
+  document.getElementById('annualDownloadBtn').addEventListener('click', () => {
+    let csv = 'Month,Year,Employees,Grand Total\n';
+    for(let m=1; m<=12; m++){
+      const { start, end } = payrollMonthRange(annualYear, m);
+      const total = calcGrandForPeriod(start, end);
+      csv += `${MONTH_NAMES[m-1]},${annualYear},${employees.length},${total.toFixed(2)}\n`;
+    }
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `annual_summary_${annualYear}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 }
 
 function exportCSV(selectedIds){
@@ -2084,8 +3060,9 @@ function exportCSV(selectedIds){
     if(!quickMonthsWrap) return;
     quickMonthsWrap.innerHTML = '';
     const base = new Date();
-    // Offer the 3 previous, current, and 3 upcoming payroll months (26th-to-25th cycles)
-    for(let offset=-3; offset<=3; offset++){
+    // Offer the past 12, current, and 2 upcoming payroll months (26th-to-25th cycles)
+    // so any month's records can be reopened later.
+    for(let offset=-12; offset<=2; offset++){
       const end = new Date(base.getFullYear(), base.getMonth()+offset, 25);
       const start = new Date(base.getFullYear(), base.getMonth()+offset-1, 26);
       const label = end.toLocaleString('en-US',{month:'short',year:'2-digit'});
