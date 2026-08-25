@@ -942,10 +942,14 @@ function updateDayRowUI(emp, d){
   ['in','out'].forEach(which=>{
     const cell = document.getElementById('cell_'+which+'_'+emp.id+'_'+d);
     const inp = document.getElementById('inp_'+which+'_'+emp.id+'_'+d);
-    const sel = document.getElementById('sel_'+which+'_'+emp.id+'_'+d);
+    const picker = document.getElementById('ampm_'+which+'_'+emp.id+'_'+d);
     if(cell) cell.classList.toggle('blocked', blocked);
     if(inp) inp.disabled = blocked;
-    if(sel) sel.disabled = blocked;
+    if(picker){
+      picker.classList.toggle('is-disabled', blocked);
+      const btn = picker.querySelector('.ampm-picker-btn');
+      if(btn) btn.disabled = blocked;
+    }
   });
 }
 function refreshAllDayRows(emp){
