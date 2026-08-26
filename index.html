@@ -1394,8 +1394,259 @@ h1{
 }
 </style>
 
+
+<style id="pkg-layering-fix">
+/* ===== FIX: dropdowns/modals must always stay above Current Period ===== */
+
+/* Top menu must remain above the fixed Current Period control */
+.menu-control{
+  position:relative !important;
+  z-index:10050 !important;
+}
+.menu-dropdown{
+  z-index:10060 !important;
+}
+
+/* All popup/modal overlays must cover the fixed Current Period control (z-index 9999) */
+.modal-overlay{
+  z-index:20000 !important;
+}
+.modal-overlay .modal-card{
+  position:relative;
+  z-index:20001;
+}
+
+/* Employee 3-dot menus must sit above the employee row and neighboring rows */
+.roster-kebab-wrap{
+  position:relative !important;
+  z-index:20;
+}
+.roster-kebab-wrap:has(.roster-kebab-menu.open){
+  z-index:10050 !important;
+}
+.roster-kebab-menu{
+  z-index:10060 !important;
+}
+
+/* Keep the opened menu visually anchored to the three-dot button */
+.roster-kebab-menu.open{
+  display:block !important;
+}
+
+/* Prevent a row hover/transform from creating an unwanted visual stacking layer */
+.roster-row:hover{
+  z-index:30;
+}
+
+/* AM/PM popup remains above the table but below full-screen modals */
+.ampm-picker.open{
+  z-index:1500 !important;
+}
+.ampm-menu{
+  z-index:1600 !important;
+}
+</style>
+
+
+<style id="pkg-motion-css">
+/* ===== PKG GREEN ROAD-LIGHT INTRO ===== */
+#pkgMotionIntro{
+  position:fixed;
+  inset:0;
+  z-index:50000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 47%,rgba(15,118,110,.16),transparent 20%),
+    linear-gradient(180deg,#020608 0%,#06120F 52%,#020605 100%);
+  opacity:1;
+  visibility:visible;
+  transition:opacity .65s ease,visibility .65s ease;
+}
+#pkgMotionIntro.pkg-motion-hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+.pkg-motion-sky{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  perspective:700px;
+}
+.pkg-motion-sky::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:45%;
+  width:42vw;
+  height:42vw;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(16,185,129,.10),transparent 68%);
+  filter:blur(10px);
+}
+.pkg-motion-road{
+  position:absolute;
+  left:50%;
+  top:47%;
+  width:2px;
+  height:92vh;
+  transform-origin:50% 0;
+  opacity:.9;
+  filter:drop-shadow(0 0 5px rgba(16,185,129,.35));
+  animation:pkgRoadRush 1.65s linear infinite;
+}
+.pkg-motion-road.green{background:linear-gradient(to bottom,transparent 0%,#059669 18%,#10B981 55%,#34D399 100%)}
+.pkg-motion-road.gold{
+  background:linear-gradient(to bottom,transparent 0%,#C9A227 20%,#E7D47A 60%,#C9A227 100%);
+  filter:drop-shadow(0 0 6px rgba(201,162,39,.42));
+}
+@keyframes pkgRoadRush{
+  0%{transform:translateY(0) scaleY(.08);opacity:0}
+  12%{opacity:.25}
+  38%{opacity:.75}
+  78%{opacity:1}
+  100%{transform:translateY(7vh) scaleY(1.35);opacity:0}
+}
+.pkg-motion-vignette{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.68) 100%);
+  pointer-events:none;
+}
+.pkg-motion-brand{
+  position:relative;
+  z-index:3;
+  text-align:center;
+  transform:translateY(-2vh);
+  animation:pkgBrandIn .9s cubic-bezier(.2,.8,.2,1) both;
+}
+.pkg-motion-mark{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:122px;
+  padding:9px 20px 8px;
+  border:1px solid rgba(16,185,129,.48);
+  border-radius:12px;
+  background:rgba(4,18,15,.58);
+  box-shadow:0 0 28px rgba(16,185,129,.12),inset 0 0 20px rgba(16,185,129,.05);
+  color:#34D399;
+  font:800 42px/1 'Inter',sans-serif;
+  letter-spacing:.10em;
+  text-shadow:0 0 18px rgba(52,211,153,.35);
+}
+.pkg-motion-name{
+  margin-top:12px;
+  color:#E5E7EB;
+  font:600 11px/1 'Inter',sans-serif;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+}
+.pkg-motion-line{
+  width:54px;
+  height:2px;
+  margin:15px auto 0;
+  border-radius:99px;
+  background:linear-gradient(90deg,transparent,#C9A227,transparent);
+  box-shadow:0 0 10px rgba(201,162,39,.35);
+}
+@keyframes pkgBrandIn{
+  from{opacity:0;transform:translateY(14px) scale(.97)}
+  to{opacity:1;transform:translateY(-2vh) scale(1)}
+}
+.pkg-motion-loading{
+  position:absolute;
+  z-index:3;
+  left:50%;
+  bottom:8vh;
+  transform:translateX(-50%);
+  color:#94A3B8;
+  font:500 10px/1 'Inter',sans-serif;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.pkg-motion-loading span{
+  color:#10B981;
+  animation:pkgDots 1.2s ease-in-out infinite;
+}
+@keyframes pkgDots{
+  0%,100%{opacity:.25}
+  50%{opacity:1}
+}
+@media(max-width:600px){
+  .pkg-motion-mark{font-size:34px;min-width:105px}
+  .pkg-motion-name{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  #pkgMotionIntro{transition:none}
+  .pkg-motion-road,.pkg-motion-brand,.pkg-motion-loading span{animation:none!important}
+}
+</style>
+
+
+<style id="pkg-shield-readaccess-css">
+.menu-item#menuShield .mi-ic{
+  background:#FBF7E8 !important;
+  color:#C9A227 !important;
+}
+.menu-item#menuShield:hover{
+  background:#FBF7E8 !important;
+  color:#8A6A00 !important;
+}
+.menu-item#menuReadAccess .mi-ic{
+  background:#F0FDFA !important;
+  color:#0F766E !important;
+}
+.menu-item#menuReadAccess:hover{
+  background:#F0FDFA !important;
+  color:#0F766E !important;
+}
+#pkgMotionIntro + *{}
+</style>
+
+
+<style id="pkg-access-gate-css">
+#pkgAccessGate{position:fixed;inset:0;z-index:49000;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 35%,rgba(15,118,110,.16),transparent 28%),linear-gradient(135deg,#070D1D 0%,#0A1428 52%,#071512 100%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s ease,visibility .35s ease}
+#pkgAccessGate.open{opacity:1;visibility:visible;pointer-events:auto}
+.pkg-access-card{width:min(430px,100%);padding:30px;border:1px solid rgba(201,162,39,.28);border-radius:18px;background:rgba(255,255,255,.97);box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center}
+.pkg-access-logo{width:58px;height:58px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;border-radius:15px;background:#F0FDFA;border:1px solid #BFE9E1;color:#0F766E;font:800 22px/1 'Inter',sans-serif;letter-spacing:.06em}
+.pkg-access-card h2{margin:0;color:#111827;font:700 22px/1.2 'Inter',sans-serif}
+.pkg-access-card p{margin:8px 0 22px;color:#64748B;font:400 13px/1.5 'Inter',sans-serif}
+.pkg-access-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pkg-access-btn{min-height:74px;padding:14px;border-radius:12px;border:1px solid #E5E7EB;background:#fff;color:#111827;cursor:pointer;font:600 13px/1.3 'Inter',sans-serif;transition:all .18s ease}
+.pkg-access-btn .ico{display:block;margin-bottom:7px;font-size:22px}
+.pkg-access-btn.admin{border-color:rgba(201,162,39,.45);background:#FBF7E8}
+.pkg-access-btn.admin:hover{background:#C9A227;color:#070D1D;transform:translateY(-1px)}
+.pkg-access-btn.read{border-color:#BFE9E1;background:#F0FDFA}
+.pkg-access-btn.read:hover{background:#0F766E;color:#fff;transform:translateY(-1px)}
+@media(max-width:480px){.pkg-access-card{padding:24px 18px}.pkg-access-actions{grid-template-columns:1fr}}
+body.pkg-read-only .btn-add,
+body.pkg-read-only .btn-print,
+body.pkg-read-only .qa-btn,
+body.pkg-read-only .roster-kebab,
+body.pkg-read-only .edit-btn,
+body.pkg-read-only .delete-btn{pointer-events:none!important;opacity:.45!important}
+</style>
+
 </head>
 <body>
+
+<!-- PKG MOTION INTRO -->
+<div id="pkgMotionIntro" aria-label="PKG loading animation">
+  <div class="pkg-motion-sky" id="pkgMotionSky"></div>
+  <div class="pkg-motion-vignette"></div>
+  <div class="pkg-motion-brand">
+    <div class="pkg-motion-mark">PKG</div>
+    <div class="pkg-motion-name">Premium Payroll Dashboard</div>
+    <div class="pkg-motion-line"></div>
+  </div>
+  <div class="pkg-motion-loading">Preparing dashboard<span> •••</span></div>
+</div>
+
 <div class="topbar">
   <div class="toprow">
     <div class="toprow-left">
@@ -1414,6 +1665,8 @@ h1{
         <button type="button" class="menu-item" id="menuManage"><span class="mi-ic">👤</span><span>Manage Employee</span></button>
         <button type="button" class="menu-item" id="menuPrint"><span class="mi-ic">🖨️</span><span>Print Report</span></button>
         <button type="button" class="menu-item" id="menuPrintLabel"><span class="mi-ic">🏷️</span><span>Print Label</span></button>
+        <button type="button" class="menu-item" id="menuShield"><span class="mi-ic">🛡️</span><span>Shield</span></button>
+        <button type="button" class="menu-item" id="menuReadAccess"><span class="mi-ic">👁️</span><span>Read Access</span></button>
       </div>
     </div>
   </div>
@@ -1836,6 +2089,7 @@ function refreshPeriodReadout(){
 const oldPeriodBtn = document.getElementById('periodBtn');
 if(oldPeriodBtn){ oldPeriodBtn.addEventListener('click', () => document.getElementById('periodPanel').classList.toggle('open')); }
 document.getElementById('periodApplyBtn').addEventListener('click', async () => {
+  if(!unlocked){ openLockOverlay(); return; }
   const s = document.getElementById('periodStartInput').value;
   const e = document.getElementById('periodEndInput').value;
   if(s && e && s <= e){
@@ -2559,6 +2813,17 @@ document.getElementById('menuManage').addEventListener('click', () => {
 });
 document.getElementById('menuPrint').addEventListener('click', () => { menuDropdown.classList.remove('open'); openPrintModal(); });
 document.getElementById('menuPrintLabel').addEventListener('click', () => { menuDropdown.classList.remove('open'); openPrintLabelModal(); });
+document.getElementById('menuShield').addEventListener('click', () => {
+  menuDropdown.classList.remove('open');
+  openLockOverlay();
+});
+document.getElementById('menuReadAccess').addEventListener('click', () => {
+  menuDropdown.classList.remove('open');
+  unlocked = false;
+  closeLockOverlay();
+  render();
+  if(window.applyReadOnlyMode) setTimeout(window.applyReadOnlyMode, 50);
+});
 
 const heroClearBtn = document.getElementById('heroClearAttendance');
 if(heroClearBtn){
@@ -2979,6 +3244,10 @@ function exportCSV(selectedIds){
   const fmt = d => d ? d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 
   async function applyPeriod(newStart, newEnd){
+    if(!unlocked){
+      openLockOverlay();
+      return;
+    }
     period = {start:newStart, end:newEnd};
 
     const startInput=document.getElementById('periodStartInput');
@@ -3156,7 +3425,109 @@ function exportCSV(selectedIds){
     if(control && !control.contains(e.target)) p.classList.remove('open');
   });
 })();
-</script></body>
+</script>
+
+<!-- PKG POST-MOTION ACCESS GATE -->
+<div id="pkgAccessGate" aria-label="PKG access selection">
+  <div class="pkg-access-card">
+    <div class="pkg-access-logo">PKG</div>
+    <h2>Choose Access</h2>
+    <p>Select the access level before entering the payroll dashboard.</p>
+    <div class="pkg-access-actions">
+      <button type="button" class="pkg-access-btn admin" id="pkgAdminAccess">
+        <span class="ico">🛡️</span>Shield<br><small>All Admin Access</small>
+      </button>
+      <button type="button" class="pkg-access-btn read" id="pkgReadAccess">
+        <span class="ico">👁️</span>Read Access<br><small>View Only • Frozen</small>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script id="pkg-access-js">
+(function(){
+  function disableEditing(){
+    document.body.classList.add('pkg-read-only');
+    document.querySelectorAll('input,textarea,select').forEach(el=>{
+      if(!el.closest('#lockOverlay')){el.setAttribute('readonly','readonly');el.setAttribute('disabled','disabled');}
+    });
+    document.querySelectorAll('button').forEach(btn=>{
+      const id=btn.id||'';
+      if(!['menuBtn','menuShield','menuReadAccess'].includes(id) && !btn.closest('#pkgAccessGate')){
+        btn.setAttribute('disabled','disabled');
+      }
+    });
+  }
+  window.applyReadOnlyMode=disableEditing;
+  window.applyAdminMode=function(){
+    document.body.classList.remove('pkg-read-only');
+    document.querySelectorAll('input,textarea,select').forEach(el=>{el.removeAttribute('readonly');el.removeAttribute('disabled');});
+    document.querySelectorAll('button').forEach(btn=>btn.removeAttribute('disabled'));
+  };
+
+  const gate=document.getElementById('pkgAccessGate');
+  const admin=document.getElementById('pkgAdminAccess');
+  const read=document.getElementById('pkgReadAccess');
+
+  window.showPkgAccessGate=function(){gate.classList.add('open');};
+
+  admin.addEventListener('click',()=>{
+    gate.classList.remove('open');
+    if(window.applyAdminMode) window.applyAdminMode();
+    if(typeof openLockOverlay==='function') openLockOverlay();
+  });
+  read.addEventListener('click',()=>{
+    gate.classList.remove('open');
+    if(typeof unlocked!=='undefined') unlocked=false;
+    if(typeof closeLockOverlay==='function') closeLockOverlay();
+    if(typeof render==='function') render();
+    setTimeout(disableEditing,80);
+  });
+})();
+</script>
+
+<script id="pkg-motion-js">
+(function(){
+  const intro = document.getElementById('pkgMotionIntro');
+  const sky = document.getElementById('pkgMotionSky');
+  if(!intro || !sky) return;
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const trailCount = window.innerWidth < 600 ? 18 : 28;
+
+  for(let i=0;i<trailCount;i++){
+    const line = document.createElement('span');
+    line.className = 'pkg-motion-road ' + (i % 5 === 0 ? 'gold' : 'green');
+    const angle = -67 + (i/(trailCount-1))*134;
+    const delay = -(Math.random()*1.65);
+    const width = i % 5 === 0 ? (1.4 + Math.random()*1.2) : (1 + Math.random()*1.1);
+    const duration = 1.25 + Math.random()*.75;
+    line.style.transform = `rotate(${angle}deg)`;
+    line.style.width = width + 'px';
+    line.style.animationDelay = delay + 's';
+    line.style.animationDuration = duration + 's';
+    sky.appendChild(line);
+  }
+
+  const hide = () => {
+    intro.classList.add('pkg-motion-hide');
+    setTimeout(()=>{
+      intro.remove();
+      if(window.showPkgAccessGate) window.showPkgAccessGate();
+    }, 750);
+  };
+
+  if(reduce){
+    setTimeout(hide, 900);
+  }else{
+    window.addEventListener('load', () => setTimeout(hide, 2600), {once:true});
+    setTimeout(hide, 3600);
+  }
+})();
+</script>
+
+</body>
 </html>
 
 <style>
