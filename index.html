@@ -1632,8 +1632,50 @@ body.pkg-read-only .edit-btn,
 body.pkg-read-only .delete-btn{pointer-events:none!important;opacity:.45!important}
 </style>
 
+
+<style id="pkg-final-menu-read-motion-fix">
+/* Final fixes: menu must float above Current Cycle/Period */
+.topbar{overflow:visible !important;}
+.menu-control{position:relative !important;z-index:30000 !important;}
+.menu-dropdown{z-index:30010 !important;}
+.duty-period-control{z-index:9999 !important;}
+
+/* Read Access: navigation stays usable so every employee record can be viewed. */
+body.pkg-read-only .back-btn,
+body.pkg-read-only #menuBtn,
+body.pkg-read-only #menuShield,
+body.pkg-read-only #menuReadAccess,
+body.pkg-read-only #menuAnnual,
+body.pkg-read-only #menuPrint,
+body.pkg-read-only #menuPrintLabel{
+  pointer-events:auto !important;
+  opacity:1 !important;
+}
+body.pkg-read-only #employeeSearch{
+  pointer-events:auto !important;
+  opacity:1 !important;
+  cursor:text !important;
+}
+body.pkg-read-only .roster-row{
+  cursor:pointer !important;
+  pointer-events:auto !important;
+}
+
+/* Access gate appears immediately after the motion, with no extra blank wait. */
+#pkgMotionIntro{transition:opacity .35s ease,visibility .35s ease !important;}
+</style>
+
+<style id="pkg-pre-access-css">
+  /* Keep the dashboard completely hidden until Choose Access appears. */
+  body.pkg-pre-access > *:not(#pkgMotionIntro):not(#pkgAccessGate){
+    visibility:hidden !important;
+  }
+  body.pkg-pre-access #pkgAccessGate{
+    visibility:hidden !important;
+  }
+</style>
 </head>
-<body>
+<body class="pkg-pre-access">
 
 <!-- PKG MOTION INTRO -->
 <div id="pkgMotionIntro" aria-label="PKG loading animation">
@@ -3438,7 +3480,7 @@ function exportCSV(selectedIds){
         <span class="ico">🛡️</span>Shield<br><small>All Admin Access</small>
       </button>
       <button type="button" class="pkg-access-btn read" id="pkgReadAccess">
-        <span class="ico">👁️</span>Read Access<br><small>View Only • Frozen</small>
+        <span class="ico">👁️</span>Read Access<br><small>View Only</small>
       </button>
     </div>
   </div>
@@ -3449,14 +3491,37 @@ function exportCSV(selectedIds){
 (function(){
   function disableEditing(){
     document.body.classList.add('pkg-read-only');
+
+    // Keep navigation/search available in Read Access, while preventing edits.
     document.querySelectorAll('input,textarea,select').forEach(el=>{
-      if(!el.closest('#lockOverlay')){el.setAttribute('readonly','readonly');el.setAttribute('disabled','disabled');}
-    });
-    document.querySelectorAll('button').forEach(btn=>{
-      const id=btn.id||'';
-      if(!['menuBtn','menuShield','menuReadAccess'].includes(id) && !btn.closest('#pkgAccessGate')){
-        btn.setAttribute('disabled','disabled');
+      if(el.closest('#lockOverlay')) return;
+      if(el.id === 'employeeSearch'){
+        el.removeAttribute('readonly');
+        el.removeAttribute('disabled');
+        return;
       }
+      el.setAttribute('readonly','readonly');
+      el.setAttribute('disabled','disabled');
+    });
+
+    // Only disable actions that can change/delete payroll data.
+    const blockedIds = new Set([
+      'btnAdd','menuManage','menuShield',
+      'editNameBtn','deleteNameBtn','heroClearAttendance',
+      'heroLock','qaLock','periodPrev','periodNext',
+      'periodApplyBtn','manualApplyBtn'
+    ]);
+    document.querySelectorAll('button').forEach(btn=>{
+      if(btn.closest('#pkgAccessGate')) return;
+      const id=btn.id||'';
+      const isEditAction = blockedIds.has(id) ||
+        btn.classList.contains('edit-btn') ||
+        btn.classList.contains('delete-btn') ||
+        btn.classList.contains('roster-kebab') ||
+        btn.classList.contains('rk-item') ||
+        btn.classList.contains('qa-btn');
+      if(isEditAction) btn.setAttribute('disabled','disabled');
+      else btn.removeAttribute('disabled');
     });
   }
   window.applyReadOnlyMode=disableEditing;
@@ -3470,7 +3535,10 @@ function exportCSV(selectedIds){
   const admin=document.getElementById('pkgAdminAccess');
   const read=document.getElementById('pkgReadAccess');
 
-  window.showPkgAccessGate=function(){gate.classList.add('open');};
+  window.showPkgAccessGate=function(){
+    document.body.classList.remove('pkg-pre-access');
+    gate.classList.add('open');
+  };
 
   admin.addEventListener('click',()=>{
     gate.classList.remove('open');
@@ -3510,19 +3578,23 @@ function exportCSV(selectedIds){
     sky.appendChild(line);
   }
 
+  let hidden = false;
   const hide = () => {
+    if(hidden) return;
+    hidden = true;
+    // Start the fade and open Choose Access as soon as the motion finishes.
     intro.classList.add('pkg-motion-hide');
     setTimeout(()=>{
       intro.remove();
       if(window.showPkgAccessGate) window.showPkgAccessGate();
-    }, 750);
+    }, 350);
   };
 
   if(reduce){
-    setTimeout(hide, 900);
+    setTimeout(hide, 500);
   }else{
-    window.addEventListener('load', () => setTimeout(hide, 2600), {once:true});
-    setTimeout(hide, 3600);
+    window.addEventListener('load', () => setTimeout(hide, 1700), {once:true});
+    setTimeout(hide, 2200);
   }
 })();
 </script>
