@@ -3606,3 +3606,71 @@ function exportCSV(selectedIds){
 /* Remove duplicate/old period bars below the main white header */
 #oldPeriodCalendar, .old-period-calendar, .period-calendar-old, .standalone-period-bar { display:none !important; }
 </style>
+
+
+<style id="pkg-mobile-cycle-menu-final">
+/* Final mobile layout: keep Menu completely clear of Current Cycle. */
+@media(max-width:700px){
+  .topbar{overflow:visible !important;}
+
+  /* Compact, non-white Current Cycle card. */
+  .duty-period-control{
+    position:relative !important;
+    top:auto !important;
+    right:auto !important;
+    display:block !important;
+    width:245px !important;
+    margin:12px 0 10px 0 !important;
+    z-index:20 !important;
+  }
+  .duty-period-card{
+    width:245px !important;
+    min-width:245px !important;
+    min-height:62px !important;
+    padding:9px 11px !important;
+    gap:9px !important;
+    border:1px solid rgba(129,140,248,.55) !important;
+    border-radius:16px !important;
+    background:linear-gradient(135deg,#18265f 0%,#34318a 55%,#5b3fb5 100%) !important;
+    box-shadow:0 10px 24px rgba(49,46,129,.25), inset 0 1px 0 rgba(255,255,255,.10) !important;
+    color:#fff !important;
+  }
+  .duty-period-card:hover{
+    transform:none !important;
+    border-color:rgba(167,139,250,.8) !important;
+  }
+  .duty-cal-icon{
+    width:34px !important;
+    height:34px !important;
+    border-radius:10px !important;
+    background:linear-gradient(145deg,#4f67e8,#7548d4) !important;
+    border:1px solid rgba(255,255,255,.18) !important;
+    color:#fff !important;
+    font-size:16px !important;
+  }
+  .duty-period-title{
+    color:#c7d2fe !important;
+    font-size:8px !important;
+  }
+  .duty-period-display{
+    color:#fff !important;
+    font-size:12px !important;
+    margin-top:2px !important;
+  }
+  .duty-period-arrow{color:#e0e7ff !important;font-size:19px !important;}
+
+  /* Mobile menu floats over the header/right side, never below Current Cycle. */
+  .menu-dropdown{
+    position:fixed !important;
+    top:78px !important;
+    right:12px !important;
+    left:auto !important;
+    width:calc(100vw - 36px) !important;
+    max-width:330px !important;
+    min-width:0 !important;
+    max-height:calc(100vh - 92px) !important;
+    overflow:auto !important;
+    z-index:40000 !important;
+  }
+}
+</style>
