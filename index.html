@@ -3913,47 +3913,46 @@ function exportCSV(selectedIds){
   }
 
   async function autoArchive(){
-    const today=new Date(); today.setHours(0,0,0,0);
-    const closedEnd=closedPayrollEnd(today);
-    const closedEndIso=iso(closedEnd);
-    let archive=await getArchive();
-    const exists=archive.some(x=>x && x.end===closedEndIso);
+    // FIX: this used to compare TODAY'S REAL CALENDAR DATE against the closed
+    // payroll cutoff and, if the device's clock had passed the 25th, it would
+    // silently WIPE the Home employee list and force-change the active period
+    // -- on every single page load, regardless of what the user was actually
+    // working on. That is what was resetting/erasing data and made "Annual
+    // Data" look broken (Home kept emptying itself out from under the user).
+    //
+    // Archiving into Annual Data is already handled safely and continuously
+    // by syncCurrentMonthToArchive() below (it mirrors the current period's
+    // employees into the archive every time data is saved). So this function
+    // no longer touches `employees` or `period` at all -- Home data now stays
+    // exactly as the user left it, and Annual Data still fills in correctly.
+    try{
+      const today=new Date(); today.setHours(0,0,0,0);
+      const closedEnd=closedPayrollEnd(today);
+      const closedEndIso=iso(closedEnd);
+      let archive=await getArchive();
+      const exists=archive.some(x=>x && x.end===closedEndIso);
 
-    if(!exists && employees.length){
-      const start=new Date(closedEnd.getFullYear(),closedEnd.getMonth()-1,26);
-      const entry={
-        id:'archive_'+closedEnd.getFullYear()+'_'+String(closedEnd.getMonth()+1).padStart(2,'0'),
-        year:closedEnd.getFullYear(),
-        month:closedEnd.getMonth()+1,
-        monthName:monthNames[closedEnd.getMonth()],
-        start:iso(start),
-        end:closedEndIso,
-        archivedAt:new Date().toISOString(),
-        employees:clone(employees)
-      };
-      archive=archive.filter(x=>!(x && x.year===entry.year && x.month===entry.month));
-      archive.push(entry);
-      archive.sort((a,b)=>(a.year-b.year)||(a.month-b.month));
-      const ok=await putArchive(archive);
-      if(ok){
-        // Home is intentionally empty after month close. The annual snapshot is safe.
-        employees=[];
-        await saveEmployees();
-      }else{
-        return;
+      // Only add a safety-net snapshot if that closed month truly has no
+      // archive entry yet AND Home is still actively showing that exact
+      // period (so we never archive mismatched/unrelated data).
+      if(!exists && employees.length && period && period.end===closedEndIso){
+        const start=new Date(closedEnd.getFullYear(),closedEnd.getMonth()-1,26);
+        const entry={
+          id:'archive_'+closedEnd.getFullYear()+'_'+String(closedEnd.getMonth()+1).padStart(2,'0'),
+          year:closedEnd.getFullYear(),
+          month:closedEnd.getMonth()+1,
+          monthName:monthNames[closedEnd.getMonth()],
+          start:iso(start),
+          end:closedEndIso,
+          archivedAt:new Date().toISOString(),
+          employees:clone(employees)
+        };
+        archive=archive.filter(x=>!(x && x.year===entry.year && x.month===entry.month));
+        archive.push(entry);
+        archive.sort((a,b)=>(a.year-b.year)||(a.month-b.month));
+        await putArchive(archive);
       }
-    } else if(exists && employees.length && period && period.end===closedEndIso){
-      // Safety: if an already archived old cycle is still loaded on Home, clear it.
-      employees=[];
-      await saveEmployees();
-    }
-
-    // Always keep Home on the active payroll cycle.
-    period=currentPayrollPeriod(today);
-    await savePeriod();
-    refreshPeriodReadout();
-    refreshCurrentPeriodCard();
-    render();
+    }catch(e){ console.error('autoArchive safety snapshot failed', e); }
   }
 
   function snapshotCalc(emp,start,end){
