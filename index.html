@@ -3179,25 +3179,43 @@ document.getElementById('menuAnnual').addEventListener('click', (e) => {
   e.stopPropagation();
   menuDropdown.classList.remove('open');
   const overlay = document.getElementById('annualOverlay');
-  if(overlay) overlay.style.display = 'flex';
-  // Annual Data is defined in the archive script loaded after the main app.
-  // Wait briefly if that script is still initializing, then open the real viewer.
-  const open = () => {
-    if(typeof window.renderAnnualModal === 'function') {
-      try { window.renderAnnualModal(); }
-      catch(err) {
-        console.error('Annual Data open failed:', err);
-        if(typeof openAnnualDataModal === 'function') openAnnualDataModal();
-      }
-      return;
+  const card = document.getElementById('annualModalCard');
+  if(!overlay || !card) return;
+
+  // Open the modal immediately. Never leave a blank screen if the archive
+  // module/Supabase is still loading or unavailable.
+  overlay.style.display = 'flex';
+  card.innerHTML = `
+    <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+    <h2>📊 Annual Data</h2>
+    <p class="sub" style="padding:18px 0;text-align:center;color:#94A3B8;">Loading saved payroll data…</p>`;
+  document.getElementById('annualXBtn')?.addEventListener('click',()=>overlay.style.display='none');
+
+  const openViewer = () => {
+    if(typeof window.renderAnnualModal === 'function'){
+      try { window.renderAnnualModal(); return; }
+      catch(err){ console.error('Annual Data viewer error:', err); }
     }
-    setTimeout(() => {
-      if(typeof window.renderAnnualModal === 'function') window.renderAnnualModal();
-      else if(overlay) overlay.style.display = 'flex';
-    }, 120);
+    // Safe fallback: the user still gets a working Annual Data screen.
+    card.innerHTML = `
+      <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+      <h2>📊 Annual Data</h2>
+      <p class="sub">No saved annual payroll archive is available yet. Completed/current payroll data will appear here automatically.</p>
+      <div class="annual-list" style="max-height:260px;">
+        <div class="empty" style="padding:35px 12px;text-align:center;">
+          <b>NO ANNUAL DATA</b>
+          <small style="display:block;margin-top:8px;color:#94A3B8;">Save payroll data first, then open Annual Data again.</small>
+        </div>
+      </div>
+      <div class="modal-btn-row"><button type="button" class="modal-btn primary" id="annualRetryBtn" style="width:100%;">↻ Refresh Annual Data</button></div>`;
+    document.getElementById('annualXBtn')?.addEventListener('click',()=>overlay.style.display='none');
+    document.getElementById('annualRetryBtn')?.addEventListener('click',openViewer);
   };
-  open();
+
+  // Give the browser one tick to finish the archive module initialization.
+  setTimeout(openViewer, 0);
 });
+
 document.getElementById('menuManage').addEventListener('click', () => {
   menuDropdown.classList.remove('open');
   if(!unlocked){ openLockOverlay(); return; }
@@ -4329,5 +4347,27 @@ function exportCSV(selectedIds){
     min-width:220px !important;
     max-width:300px !important;
   }
+}
+</style>
+
+<style id="pkg-annual-data-final-fix">
+#annualOverlay{
+  display:none;
+  position:fixed !important;
+  inset:0 !important;
+  z-index:50000 !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:20px !important;
+  background:rgba(3,8,18,.72) !important;
+  backdrop-filter:blur(4px) !important;
+}
+#annualOverlay[style*="display: flex"]{display:flex !important;}
+#annualModalCard{
+  position:relative !important;
+  z-index:50001 !important;
+  width:min(480px, calc(100vw - 28px)) !important;
+  max-height:86vh !important;
+  overflow-y:auto !important;
 }
 </style>
