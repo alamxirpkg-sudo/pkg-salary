@@ -1940,6 +1940,24 @@ table.daygrid tr.weekly-off-row td.date-cell{ background:rgba(139,92,246,.22) !i
 .net-cell{ color:#F1F5F9 !important; }
 .date-cell{ color:#CBD5E1 !important; }
 </style>
+
+<style id="pkg-final-cycle-menu-compact">
+/* Final compact Current Cycle + menu stacking fix */
+.topbar{overflow:visible !important;position:relative !important;z-index:30000 !important;}
+.menu-control{position:relative !important;z-index:50000 !important;}
+.menu-dropdown{position:absolute !important;top:calc(100% + 7px) !important;right:0 !important;left:auto !important;z-index:50010 !important;}
+.duty-period-control{z-index:1000 !important;}
+.duty-period-card{min-width:190px !important;width:auto !important;min-height:50px !important;padding:6px 9px !important;gap:7px !important;border-radius:12px !important;}
+.duty-cal-icon{width:28px !important;height:28px !important;border-radius:8px !important;font-size:13px !important;}
+.duty-period-title{font-size:7px !important;line-height:1 !important;}
+.duty-period-display{font-size:11px !important;margin-top:2px !important;line-height:1.1 !important;}
+.duty-period-arrow{font-size:16px !important;}
+@media(max-width:700px){
+  .duty-period-control{width:205px !important;margin:9px 0 8px !important;}
+  .duty-period-card{width:205px !important;min-width:205px !important;min-height:48px !important;padding:6px 8px !important;}
+  .menu-dropdown{top:calc(100% + 6px) !important;max-height:calc(100vh - 80px) !important;}
+}
+</style>
 </head>
 <body class="pkg-pre-access">
 
@@ -3156,7 +3174,30 @@ document.addEventListener('click', (e) => {
   if(menuControl && !menuControl.contains(e.target)) menuDropdown.classList.remove('open');
   if(!e.target.closest('.roster-kebab-wrap')) document.querySelectorAll('.roster-kebab-menu.open').forEach(m => m.classList.remove('open'));
 });
-document.getElementById('menuAnnual').addEventListener('click', () => { menuDropdown.classList.remove('open'); openAnnualDataModal(); });
+document.getElementById('menuAnnual').addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  menuDropdown.classList.remove('open');
+  const overlay = document.getElementById('annualOverlay');
+  if(overlay) overlay.style.display = 'flex';
+  // Annual Data is defined in the archive script loaded after the main app.
+  // Wait briefly if that script is still initializing, then open the real viewer.
+  const open = () => {
+    if(typeof window.renderAnnualModal === 'function') {
+      try { window.renderAnnualModal(); }
+      catch(err) {
+        console.error('Annual Data open failed:', err);
+        if(typeof openAnnualDataModal === 'function') openAnnualDataModal();
+      }
+      return;
+    }
+    setTimeout(() => {
+      if(typeof window.renderAnnualModal === 'function') window.renderAnnualModal();
+      else if(overlay) overlay.style.display = 'flex';
+    }, 120);
+  };
+  open();
+});
 document.getElementById('menuManage').addEventListener('click', () => {
   menuDropdown.classList.remove('open');
   if(!unlocked){ openLockOverlay(); return; }
