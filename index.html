@@ -3600,6 +3600,194 @@ function exportCSV(selectedIds){
 </script>
 
 </body>
+
+<script>
+/* ================================================================
+   PKG FINAL: AUTOMATIC MONTH-END -> ANNUAL DATA ARCHIVE
+   - Payroll month = 26th to 25th
+   - Completed month is copied to Annual Data as a permanent snapshot
+   - Home employee list is cleared after a successful archive
+   - A fresh payroll cycle starts automatically
+================================================================ */
+(function(){
+  const ARCHIVE_KEY = 'annual_archive_v1';
+  const clone = v => JSON.parse(JSON.stringify(v));
+  const iso = d => {
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  };
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  async function getArchive(){
+    try{
+      const {data,error}=await sb.from('app_data').select('value').eq('key',ARCHIVE_KEY).maybeSingle();
+      if(error) throw error;
+      return Array.isArray(data && data.value) ? data.value : [];
+    }catch(e){ console.error('Annual archive read failed',e); return []; }
+  }
+  async function putArchive(value){
+    try{
+      const {error}=await sb.from('app_data').upsert({key:ARCHIVE_KEY,value});
+      if(error) throw error;
+      return true;
+    }catch(e){ console.error('Annual archive save failed',e); return false; }
+  }
+
+  function closedPayrollEnd(today){
+    // If today is 1-25, the previous cycle ended on the 25th of last month.
+    // If today is 26+, the current month's 25th has just become the closed end.
+    return new Date(today.getFullYear(), today.getMonth() - (today.getDate() <= 25 ? 1 : 0), 25);
+  }
+
+  function currentPayrollPeriod(today){
+    const end=new Date(today.getFullYear(),today.getMonth(),25);
+    const start=new Date(today.getFullYear(),today.getMonth()-1,26);
+    return {start:iso(start),end:iso(end)};
+  }
+
+  async function autoArchive(){
+    const today=new Date(); today.setHours(0,0,0,0);
+    const closedEnd=closedPayrollEnd(today);
+    const closedEndIso=iso(closedEnd);
+    let archive=await getArchive();
+    const exists=archive.some(x=>x && x.end===closedEndIso);
+
+    if(!exists && employees.length){
+      const start=new Date(closedEnd.getFullYear(),closedEnd.getMonth()-1,26);
+      const entry={
+        id:'archive_'+closedEnd.getFullYear()+'_'+String(closedEnd.getMonth()+1).padStart(2,'0'),
+        year:closedEnd.getFullYear(),
+        month:closedEnd.getMonth()+1,
+        monthName:monthNames[closedEnd.getMonth()],
+        start:iso(start),
+        end:closedEndIso,
+        archivedAt:new Date().toISOString(),
+        employees:clone(employees)
+      };
+      archive=archive.filter(x=>!(x && x.year===entry.year && x.month===entry.month));
+      archive.push(entry);
+      archive.sort((a,b)=>(a.year-b.year)||(a.month-b.month));
+      const ok=await putArchive(archive);
+      if(ok){
+        // Home is intentionally empty after month close. The annual snapshot is safe.
+        employees=[];
+        await saveEmployees();
+      }else{
+        return;
+      }
+    } else if(exists && employees.length && period && period.end===closedEndIso){
+      // Safety: if an already archived old cycle is still loaded on Home, clear it.
+      employees=[];
+      await saveEmployees();
+    }
+
+    // Always keep Home on the active payroll cycle.
+    period=currentPayrollPeriod(today);
+    await savePeriod();
+    refreshPeriodReadout();
+    refreshCurrentPeriodCard();
+    render();
+  }
+
+  function snapshotCalc(emp,start,end){
+    const old=period;
+    period={start,end};
+    const c=monthlyCalc(emp);
+    period=old;
+    return c;
+  }
+
+  function showArchivedMonth(entry){
+    const card=document.getElementById('annualModalCard');
+    if(!card) return;
+    const list=Array.isArray(entry.employees)?entry.employees:[];
+    let total=0;
+    const rows=list.map((emp,i)=>{
+      const c=snapshotCalc(emp,entry.start,entry.end); total+=c.grand;
+      return `<div class="annual-row" style="cursor:default;display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:9px;">
+        <span style="font-weight:700;color:#64748B;text-align:center;">${i+1}</span>
+        <span class="am-name" style="min-width:0"><b>${escapeHtml(emp.name||'Unnamed employee')}</b><small style="display:block;color:#94A3B8;font-size:9px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">ID: ${escapeHtml(emp.empId||'-')} · ${escapeHtml(emp.designation||'-')}</small></span>
+        <span class="am-total">${money(c.grand)}</span>
+      </div>`;
+    }).join('');
+    card.innerHTML=`
+      <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+      <h2>📊 ${entry.monthName} ${entry.year}</h2>
+      <p class="sub">Archived payroll: ${formatDateLabelFull(entry.start)} – ${formatDateLabelFull(entry.end)}</p>
+      <div class="annual-year-total"><span>Employees</span><b>${list.length}</b></div>
+      <div style="display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;padding:7px 12px;color:#64748B;font-size:10px;font-weight:700;border-bottom:1px solid #E5E7EB;text-transform:uppercase;letter-spacing:.4px;"><span style="text-align:center;">SL</span><span>Name / ID / Designation</span><span>Total</span></div>
+      <div class="annual-list" style="max-height:360px;">${rows || '<div class="empty" style="padding:25px 12px;">No employee data was saved for this month.</div>'}</div>
+      <div class="annual-year-total"><span>Month Total</span><b>${money(total)}</b></div>
+      <div class="modal-btn-row"><button class="modal-btn ghost" id="annualBackBtn" style="width:100%;">← Back to Annual Data</button></div>`;
+    document.getElementById('annualXBtn').addEventListener('click',()=>document.getElementById('annualOverlay').style.display='none');
+    document.getElementById('annualBackBtn').addEventListener('click',renderAnnualModal);
+  }
+
+  // Replace the old calculation-only Annual Data screen with the saved snapshots.
+  window.renderAnnualModal=function(){
+    const card=document.getElementById('annualModalCard');
+    if(!card) return;
+    getArchive().then(archive=>{
+      let yearGrand=0;
+      const yearEntries=archive.filter(x=>x && x.year===annualYear);
+      let rows='';
+      for(let m=1;m<=12;m++){
+        const entry=yearEntries.find(x=>x.month===m);
+        const total=entry ? entry.employees.reduce((sum,emp)=>sum+snapshotCalc(emp,entry.start,entry.end).grand,0) : 0;
+        yearGrand+=total;
+        rows+=`<button type="button" class="annual-row" data-annual-month="${m}">
+          <span class="am-name">${monthNames[m-1]} ${entry?'✓':''}</span>
+          <span class="am-total">${entry?money(total):'—'}</span>
+          <span class="am-arrow">›</span>
+        </button>`;
+      }
+      card.innerHTML=`
+        <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+        <h2>📊 Annual Data</h2>
+        <p class="sub">Each completed payroll month is saved here automatically. Home starts fresh after month close.</p>
+        <div class="annual-year-nav">
+          <button type="button" id="annualPrevYear">‹</button>
+          <span id="annualYearLabel">${annualYear}</span>
+          <button type="button" id="annualNextYear">›</button>
+        </div>
+        <div class="annual-list">${rows}</div>
+        <div class="annual-year-total"><span>Year Total</span><b>${money(yearGrand)}</b></div>
+        <div class="modal-btn-row"><button class="modal-btn primary" id="annualDownloadBtn" style="width:100%;">⬇️ Download Annual Summary (CSV)</button></div>`;
+      document.getElementById('annualXBtn').addEventListener('click',()=>document.getElementById('annualOverlay').style.display='none');
+      document.getElementById('annualPrevYear').addEventListener('click',()=>{annualYear--;renderAnnualModal();});
+      document.getElementById('annualNextYear').addEventListener('click',()=>{annualYear++;renderAnnualModal();});
+      card.querySelectorAll('[data-annual-month]').forEach(btn=>btn.addEventListener('click',()=>{
+        const m=Number(btn.getAttribute('data-annual-month'));
+        const entry=yearEntries.find(x=>x.month===m);
+        if(entry) showArchivedMonth(entry);
+        else alert(`${monthNames[m-1]} ${annualYear} has not been archived yet.`);
+      }));
+      document.getElementById('annualDownloadBtn').addEventListener('click',()=>{
+        let csv='Month,Year,Employees,Grand Total\n';
+        for(let m=1;m<=12;m++){
+          const entry=yearEntries.find(x=>x.month===m);
+          const total=entry?entry.employees.reduce((sum,emp)=>sum+snapshotCalc(emp,entry.start,entry.end).grand,0):0;
+          csv+=`${monthNames[m-1]},${annualYear},${entry?entry.employees.length:0},${total.toFixed(2)}\n`;
+        }
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+        a.href=url;a.download=`annual_summary_${annualYear}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+      });
+    });
+  };
+
+  // Run after the original page initialization has loaded Supabase data.
+  let tries=0;
+  const boot=async()=>{
+    tries++;
+    if(typeof sb==='undefined' || typeof saveEmployees!=='function' || typeof render!=='function'){
+      if(tries<30) setTimeout(boot,250); return;
+    }
+    await autoArchive();
+  };
+  setTimeout(boot,500);
+})();
+</script>
+
 </html>
 
 <style>
