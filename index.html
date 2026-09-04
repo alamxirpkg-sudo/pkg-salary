@@ -3469,8 +3469,16 @@ function openAnnualDataModal(){
   // "recalculate current Home employees against every month" version was removed
   // on purpose — it never showed true saved history and could confuse the two
   // systems. Do not re-add a duplicate renderAnnualModal function here.
-  renderAnnualModal();
   document.getElementById('annualOverlay').style.display = 'flex';
+  try{
+    renderAnnualModal();
+  }catch(e){
+    console.error('openAnnualDataModal failed', e);
+    const card=document.getElementById('annualModalCard');
+    if(card) card.innerHTML = `<button type="button" class="modal-close-x" onclick="document.getElementById('annualOverlay').style.display='none'" title="Close">✕</button>
+      <h2>⚠️ Annual Data couldn't open</h2>
+      <p class="sub">Something went wrong loading this screen. Check the browser console (F12) for the red error line and share it.</p>`;
+  }
 }
 
 function exportCSV(selectedIds){
@@ -4061,13 +4069,28 @@ function exportCSV(selectedIds){
   window.renderAnnualModal=function(){
     const card=document.getElementById('annualModalCard');
     if(!card) return;
+    // Show something immediately so the modal never looks like it "did nothing"
+    // while the Supabase read is in flight (or if it hangs/fails).
+    card.innerHTML=`
+      <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+      <h2>📊 Annual Data</h2>
+      <p class="sub" style="padding:20px 0;text-align:center;color:#94A3B8;">Loading saved months…</p>`;
+    document.getElementById('annualXBtn')?.addEventListener('click',()=>document.getElementById('annualOverlay').style.display='none');
     getArchive().then(archive=>{
       let yearGrand=0;
       const yearEntries=archive.filter(x=>x && x.year===annualYear);
       let rows='';
       for(let m=1;m<=12;m++){
         const entry=yearEntries.find(x=>x.month===m);
-        const total=entry ? entry.employees.reduce((sum,emp)=>sum+snapshotCalc(emp,entry.start,entry.end).grand,0) : 0;
+        let total=0;
+        if(entry){
+          try{
+            total=(entry.employees||[]).reduce((sum,emp)=>{
+              try{ return sum+snapshotCalc(emp,entry.start,entry.end).grand; }
+              catch(e){ console.error('snapshotCalc failed for one employee in', entry.monthName, e); return sum; }
+            },0);
+          }catch(e){ console.error('month total failed for', entry.monthName, e); }
+        }
         yearGrand+=total;
         rows+=`<button type="button" class="annual-row" data-annual-month="${m}">
           <span class="am-name">${monthNames[m-1]} ${entry?'✓':''}</span>
@@ -4093,8 +4116,18 @@ function exportCSV(selectedIds){
       card.querySelectorAll('[data-annual-month]').forEach(btn=>btn.addEventListener('click',()=>{
         const m=Number(btn.getAttribute('data-annual-month'));
         const entry=yearEntries.find(x=>x.month===m);
-        if(entry) showArchivedMonth(entry);
-        else showNoAnnualData(monthNames[m-1], annualYear);
+        try{
+          if(entry) showArchivedMonth(entry);
+          else showNoAnnualData(monthNames[m-1], annualYear);
+        }catch(e){
+          console.error('showArchivedMonth failed', e);
+          card.innerHTML=`<button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+            <h2>⚠️ Could not open ${monthNames[m-1]}</h2>
+            <p class="sub">Something in this month's saved data could not be displayed. Check the browser console for details.</p>
+            <div class="modal-btn-row"><button class="modal-btn ghost" id="annualBackBtn" style="width:100%;">← Back to Annual Data</button></div>`;
+          document.getElementById('annualXBtn').addEventListener('click',()=>document.getElementById('annualOverlay').style.display='none');
+          document.getElementById('annualBackBtn').addEventListener('click',renderAnnualModal);
+        }
       }));
       document.getElementById('annualDownloadBtn').addEventListener('click',()=>{
         let csv='Month,Year,Employees,Grand Total\n';
@@ -4106,8 +4139,18 @@ function exportCSV(selectedIds){
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
         a.href=url;a.download=`annual_summary_${annualYear}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
       });
+    }).catch(err=>{
+      console.error('renderAnnualModal failed', err);
+      card.innerHTML=`
+        <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+        <h2>⚠️ Annual Data couldn't load</h2>
+        <p class="sub">Could not read the saved months right now (connection or server issue). Please check your internet connection and try again.</p>
+        <div class="modal-btn-row"><button class="modal-btn primary" id="annualRetryBtn" style="width:100%;">↻ Try Again</button></div>`;
+      document.getElementById('annualXBtn').addEventListener('click',()=>document.getElementById('annualOverlay').style.display='none');
+      document.getElementById('annualRetryBtn').addEventListener('click',renderAnnualModal);
     });
   };
+
 
   // Mirror the CURRENT (still-open) month into Annual Data on every save, so a
   // single employee's submitted data shows up in Annual Data immediately —
