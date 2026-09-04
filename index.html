@@ -1991,9 +1991,6 @@ table.daygrid tr.weekly-off-row td.date-cell{ background:rgba(139,92,246,.22) !i
   </div>
   <div class="period-row">
     <p class="period-readout" id="periodReadout"></p>
-    <div class="quick-actions">
-      <button class="qa-btn qa-lock" id="qaLock" title="Unlock Edit Mode">🔓</button>
-    </div>
   </div>
   <div class="period-panel" id="periodPanel">
     <div class="row">
@@ -3145,7 +3142,7 @@ function updateMenuLabels(){
   btn.textContent = unlocked ? '🔒' : '🔓';
   btn.title = unlocked ? 'Switch to Viewer' : 'Unlock Edit Mode';
 }
-document.getElementById('qaLock').addEventListener('click', () => { if(unlocked){ unlocked=false; render(); } else { openLockOverlay(); } });
+document.getElementById('qaLock')?.addEventListener('click', () => { if(unlocked){ unlocked=false; render(); } else { openLockOverlay(); } });
 
 /* ---------------- TOP MENU (☰) ---------------- */
 const menuControl = document.getElementById('menuControl');
@@ -4218,18 +4215,35 @@ function exportCSV(selectedIds){
   }
   .duty-period-arrow{color:#94A3B8 !important;font-size:19px !important;}
 
-  /* Mobile menu floats over the header/right side, never below Current Cycle. */
+  /* Menu opens right under the 3-dot button itself, not at a guessed pixel
+     offset — the old fixed "top:78px" assumed a topbar height that changes
+     once the Current Cycle card/period text are in there, so the dropdown
+     used to land past them. Anchoring to .menu-control (which wraps just the
+     button) keeps it glued to the button on any screen. */
   .menu-dropdown{
-    position:fixed !important;
-    top:78px !important;
-    right:12px !important;
+    position:absolute !important;
+    top:calc(100% + 8px) !important;
+    right:0 !important;
     left:auto !important;
-    width:calc(100vw - 36px) !important;
-    max-width:330px !important;
-    min-width:0 !important;
-    max-height:calc(100vh - 92px) !important;
+    width:max-content !important;
+    max-width:min(300px, calc(100vw - 24px)) !important;
+    min-width:200px !important;
+    max-height:calc(100vh - 100px) !important;
     overflow:auto !important;
     z-index:40000 !important;
+  }
+}
+</style>
+<style id="pkg-menu-anchor-desktop-final">
+/* Same button-anchored behaviour on larger screens for a consistent app feel. */
+@media(min-width:701px){
+  .menu-dropdown{
+    position:absolute !important;
+    top:calc(100% + 8px) !important;
+    right:0 !important;
+    left:auto !important;
+    min-width:220px !important;
+    max-width:300px !important;
   }
 }
 </style>
