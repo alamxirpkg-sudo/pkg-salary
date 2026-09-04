@@ -1928,13 +1928,22 @@ function monthlyCalc(emp){
 }
 
 async function loadPeriod(){
-  // Default current payroll period: 26 July 2026 through 25 August 2026.
-  // Calendar Apply can change it after the page loads.
-  period = { start:'2026-07-26', end:'2026-08-25' };
+  // Load the saved payroll period from Supabase. Only fall back to the
+  // default (26 July 2026 - 25 August 2026) if nothing has been saved yet.
+  // NOTE: previously this hardcoded the default on every page load, which
+  // silently undid autoArchive()'s monthly period advance on every refresh.
   try{
-    await savePeriod();
+    const { data, error } = await sb.from('app_data').select('value').eq('key', PERIOD_KEY).maybeSingle();
+    if(error) throw error;
+    if(data && data.value && data.value.start && data.value.end){
+      period = data.value;
+    }else{
+      period = { start:'2026-07-26', end:'2026-08-25' };
+      await savePeriod();
+    }
   }catch(e){
-    console.error('save default period failed', e);
+    console.error('loadPeriod failed', e);
+    period = { start:'2026-07-26', end:'2026-08-25' };
   }
 }
 async function savePeriod(){
@@ -3241,6 +3250,7 @@ function exportCSV(selectedIds){
 (async function init(){
   await loadPeriod();
   await loadEmployees();
+  window.__pkgDataReady = true;
   refreshPeriodReadout();
   refreshCurrentPeriodCard();
   updateMenuLabels();
@@ -3723,6 +3733,22 @@ function exportCSV(selectedIds){
     document.getElementById('annualBackBtn').addEventListener('click',renderAnnualModal);
   }
 
+  function showNoAnnualData(monthName, year){
+    const card=document.getElementById('annualModalCard');
+    if(!card) return;
+    card.innerHTML=`
+      <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
+      <h2>📊 ${monthName} ${year}</h2>
+      <p class="sub">No payroll data has been submitted/saved for this month.</p>
+      <div class="annual-list" style="max-height:220px;">
+        <div class="empty" style="padding:35px 12px;text-align:center;"><b>NOT DATA FOUND</b><small style="display:block;margin-top:7px;color:#94A3B8;">No employee data found for ${monthName} ${year}.</small></div>
+      </div>
+      <div class="annual-year-total"><span>Month Balance</span><b>00</b></div>
+      <div class="modal-btn-row"><button class="modal-btn ghost" id="annualBackBtn" style="width:100%;">← Back to Annual Data</button></div>`;
+    document.getElementById('annualXBtn').addEventListener('click',()=>document.getElementById('annualOverlay').style.display='none');
+    document.getElementById('annualBackBtn').addEventListener('click',renderAnnualModal);
+  }
+
   // Replace the old calculation-only Annual Data screen with the saved snapshots.
   window.renderAnnualModal=function(){
     const card=document.getElementById('annualModalCard');
@@ -3737,7 +3763,7 @@ function exportCSV(selectedIds){
         yearGrand+=total;
         rows+=`<button type="button" class="annual-row" data-annual-month="${m}">
           <span class="am-name">${monthNames[m-1]} ${entry?'✓':''}</span>
-          <span class="am-total">${entry?money(total):'—'}</span>
+          <span class="am-total">${entry?money(total):'00'}</span>
           <span class="am-arrow">›</span>
         </button>`;
       }
@@ -3760,7 +3786,7 @@ function exportCSV(selectedIds){
         const m=Number(btn.getAttribute('data-annual-month'));
         const entry=yearEntries.find(x=>x.month===m);
         if(entry) showArchivedMonth(entry);
-        else alert(`${monthNames[m-1]} ${annualYear} has not been archived yet.`);
+        else showNoAnnualData(monthNames[m-1], annualYear);
       }));
       document.getElementById('annualDownloadBtn').addEventListener('click',()=>{
         let csv='Month,Year,Employees,Grand Total\n';
@@ -3779,8 +3805,8 @@ function exportCSV(selectedIds){
   let tries=0;
   const boot=async()=>{
     tries++;
-    if(typeof sb==='undefined' || typeof saveEmployees!=='function' || typeof render!=='function'){
-      if(tries<30) setTimeout(boot,250); return;
+    if(typeof sb==='undefined' || typeof saveEmployees!=='function' || typeof render!=='function' || !window.__pkgDataReady){
+      if(tries<80) setTimeout(boot,250); return;
     }
     await autoArchive();
   };
