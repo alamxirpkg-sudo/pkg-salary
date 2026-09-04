@@ -3467,65 +3467,13 @@ function calcGrandForPeriod(start, end){
   return total;
 }
 function openAnnualDataModal(){
+  // NOTE: renderAnnualModal is defined later (near the bottom of the page) as the
+  // real per-month ARCHIVE viewer (reads saved snapshots from Supabase). This old
+  // "recalculate current Home employees against every month" version was removed
+  // on purpose — it never showed true saved history and could confuse the two
+  // systems. Do not re-add a duplicate renderAnnualModal function here.
   renderAnnualModal();
   document.getElementById('annualOverlay').style.display = 'flex';
-}
-const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-function renderAnnualModal(){
-  const card = document.getElementById('annualModalCard');
-  let rows = '';
-  let yearGrand = 0;
-  for(let m=1; m<=12; m++){
-    const { start, end } = payrollMonthRange(annualYear, m);
-    const total = calcGrandForPeriod(start, end);
-    yearGrand += total;
-    rows += `<button type="button" class="annual-row" data-astart="${start}" data-aend="${end}" title="View employee data for ${MONTH_NAMES[m-1]} ${annualYear}">
-      <span class="am-name">${MONTH_NAMES[m-1]}</span>
-      <span class="am-total">${money(total)}</span>
-      <span class="am-arrow">›</span>
-    </button>`;
-  }
-  card.innerHTML = `
-    <button type="button" class="modal-close-x" id="annualXBtn" title="Close">✕</button>
-    <h2>📊 Annual Data</h2>
-    <p class="sub">Select any month to view that month’s employee attendance &amp; salary data.</p>
-    <div class="annual-year-nav">
-      <button type="button" id="annualPrevYear">‹</button>
-      <span id="annualYearLabel">${annualYear}</span>
-      <button type="button" id="annualNextYear">›</button>
-    </div>
-    <div class="annual-list">${rows}</div>
-    <div class="annual-year-total"><span>Year Total</span><b>${money(yearGrand)}</b></div>
-    <div class="modal-btn-row">
-      <button class="modal-btn primary" id="annualDownloadBtn" style="width:100%;">⬇️ Download Annual Summary (CSV)</button>
-    </div>
-  `;
-  document.getElementById('annualXBtn').addEventListener('click', () => document.getElementById('annualOverlay').style.display='none');
-  document.getElementById('annualPrevYear').addEventListener('click', () => { annualYear--; renderAnnualModal(); });
-  document.getElementById('annualNextYear').addEventListener('click', () => { annualYear++; renderAnnualModal(); });
-  card.querySelectorAll('.annual-row').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const s = btn.getAttribute('data-astart');
-      const e = btn.getAttribute('data-aend');
-      document.getElementById('annualOverlay').style.display = 'none';
-      view = { mode:'list' };
-      await applyPeriod(s, e);
-    });
-  });
-  document.getElementById('annualDownloadBtn').addEventListener('click', () => {
-    let csv = 'Month,Year,Employees,Grand Total\n';
-    for(let m=1; m<=12; m++){
-      const { start, end } = payrollMonthRange(annualYear, m);
-      const total = calcGrandForPeriod(start, end);
-      csv += `${MONTH_NAMES[m-1]},${annualYear},${employees.length},${total.toFixed(2)}\n`;
-    }
-    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `annual_summary_${annualYear}.csv`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
 }
 
 function exportCSV(selectedIds){
